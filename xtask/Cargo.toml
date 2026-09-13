@@ -8,7 +8,7 @@ publish = false
 [dependencies]
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
-syn = { version = "2", features = ["full", "visit", "extra-traits"] }
+syn = { version = "3", features = ["full", "visit", "extra-traits"] }
 toml = "1.1"
 walkdir = "2"
 serde = { version = "1", features = ["derive"] }
