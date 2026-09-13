@@ -232,7 +232,6 @@ mod deterministic_dpapi {
     Aes256Gcm,
   };
   use base64::{engine::general_purpose, Engine as _};
-  use rand::RngCore;
   use std::ffi::c_void;
   use std::path::{Path, PathBuf};
   use std::ptr;
@@ -319,7 +318,7 @@ mod deterministic_dpapi {
 
   fn write_cookie_db(path: &Path, aes_key: &[u8; 32]) {
     let mut nonce_bytes = [0u8; 12];
-    rand::thread_rng().fill_bytes(&mut nonce_bytes);
+    rand::fill(&mut nonce_bytes);
     let cipher = Aes256Gcm::new_from_slice(aes_key).expect("32-byte AES key");
     let nonce = Nonce::<Aes256Gcm>::try_from(nonce_bytes.as_slice()).expect("12-byte nonce");
     let ciphertext = cipher
@@ -368,7 +367,7 @@ mod deterministic_dpapi {
     let cookies_db = network.join("Cookies");
 
     let mut aes_key = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut aes_key);
+    rand::fill(&mut aes_key);
     write_local_state(&local_state, &aes_key);
     write_cookie_db(&cookies_db, &aes_key);
 
