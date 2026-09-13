@@ -78,7 +78,7 @@ e2e-appbound-steering = []
 
 [target.'cfg(unix)'.dependencies]
 aes = { version = "0.8", features = ["zeroize"] }
-cbc = { version = "0.1", features = ["zeroize"] }
+cbc = { version = "0.2", features = ["zeroize"] }
 pbkdf2 = "0.12"
 sha1 = "0.10"
 
