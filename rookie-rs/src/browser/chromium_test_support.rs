@@ -21,14 +21,15 @@ pub(super) fn encrypt_windows_gcm_cookie(
   plaintext: &[u8],
 ) -> Vec<u8> {
   use aes_gcm::{
-    aead::{generic_array::GenericArray, Aead, KeyInit},
+    aead::{Aead, KeyInit, Nonce},
     Aes256Gcm,
   };
 
   let nonce = [0x42; 12];
   let cipher = Aes256Gcm::new_from_slice(key).expect("fixture key");
+  let nonce_array = Nonce::<Aes256Gcm>::try_from(nonce.as_slice()).expect("12-byte nonce");
   let ciphertext = cipher
-    .encrypt(GenericArray::from_slice(&nonce), plaintext)
+    .encrypt(&nonce_array, plaintext)
     .expect("encrypt synthetic Chromium cookie");
   let mut encrypted_value = version.to_vec();
   encrypted_value.extend_from_slice(&nonce);

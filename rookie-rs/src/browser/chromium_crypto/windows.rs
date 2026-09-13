@@ -1,6 +1,6 @@
 use super::LegacyCipherOutcome;
 use aes_gcm::{
-  aead::{generic_array::GenericArray, Aead, KeyInit},
+  aead::{Aead, KeyInit, Nonce},
   Aes256Gcm,
 };
 use anyhow::{anyhow, Context, Result};
@@ -23,9 +23,10 @@ pub(super) fn decrypt_keyed_candidate(encrypted_value: &[u8], key: &[u8]) -> Res
   validate_keyed_envelope(encrypted_value)?;
   let cipher = Aes256Gcm::new_from_slice(key)
     .map_err(|_| anyhow!("Chromium AES-GCM candidate key has an invalid length"))?;
-  let nonce = GenericArray::from_slice(&encrypted_value[3..15]);
+  let nonce = Nonce::<Aes256Gcm>::try_from(&encrypted_value[3..15])
+    .expect("validated Chromium nonce is 12 bytes");
   cipher
-    .decrypt(nonce, &encrypted_value[15..])
+    .decrypt(&nonce, &encrypted_value[15..])
     .map(SecretBytes::new)
     .map_err(|_| anyhow!("Chromium AES-GCM authentication failed"))
 }
