@@ -18,9 +18,8 @@ use rookie_cookies::report::{
   ExtractionIssue, ExtractionReport, ExtractionStats, ProfileDescriptor, ProfileExtraction,
   ProfileIdentity, ReportStats, SourceExtraction,
 };
-use schemars::gen::{SchemaGenerator, SchemaSettings};
-use schemars::Map;
-use serde_json::{json, Value};
+use schemars::generate::{SchemaGenerator, SchemaSettings};
+use serde_json::{json, Map, Value};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -88,8 +87,130 @@ fn root_definitions(generator: &mut SchemaGenerator) -> Map<String, Value> {
   roots
 }
 
-fn schema_value(schema: schemars::schema::Schema) -> Value {
-  serde_json::to_value(schema).expect("schema serializes to JSON")
+fn schema_value(schema: schemars::Schema) -> Value {
+  let mut value = schema.to_value();
+  normalize_schemars_08_output(&mut value);
+  value
+}
+
+/// Keep the checked-in schema byte-for-byte stable across the schemars 0.8 to
+/// 1.x migration. Schemars 1.x changed JSON object ordering, preserves source
+/// line wrapping in doc comments, emits integer upper bounds, and preserves
+/// declaration order in `required`; none of those serialization differences
+/// changes this project's frozen wire contract.
+fn normalize_schemars_08_output(schema: &mut Value) {
+  let Some(object) = schema.as_object_mut() else {
+    if let Some(values) = schema.as_array_mut() {
+      for value in values {
+        normalize_schemars_08_output(value);
+      }
+    }
+    return;
+  };
+
+  for value in object.values_mut() {
+    normalize_schemars_08_output(value);
+  }
+
+  if let Some(description) = object.get("description").and_then(Value::as_str) {
+    let normalized = description
+      .split("\n\n")
+      .map(|paragraph| paragraph.lines().collect::<Vec<_>>().join(" "))
+      .collect::<Vec<_>>()
+      .join("\n\n");
+    object.insert("description".to_owned(), Value::String(normalized));
+  }
+
+  if let Some(required) = object.get_mut("required").and_then(Value::as_array_mut) {
+    required.sort_by(|left, right| left.as_str().cmp(&right.as_str()));
+  }
+
+  let is_integer = match object.get("type") {
+    Some(Value::String(kind)) => kind == "integer",
+    Some(Value::Array(kinds)) => kinds.iter().any(|kind| kind == "integer"),
+    _ => false,
+  };
+  if is_integer {
+    // Schemars 0.8 represented unsigned Rust integers with a 0.0 lower bound
+    // and no machine-width upper bound. Preserve that published schema.
+    object.remove("maximum");
+    if matches!(object.get("minimum"), Some(Value::Number(number)) if number.as_u64() == Some(0)) {
+      object.insert(
+        "minimum".to_owned(),
+        Value::Number(serde_json::Number::from_f64(0.0).expect("zero is finite")),
+      );
+    }
+  }
+
+  // This is the field order of schemars 0.8's serializable SchemaObject and
+  // validation structs. serde_json's preserve_order feature makes it part of
+  // the pretty-printed artifact, so reproduce it explicitly.
+  const SCHEMARS_08_KEY_ORDER: &[&str] = &[
+    "$id",
+    "title",
+    "description",
+    "default",
+    "deprecated",
+    "readOnly",
+    "writeOnly",
+    "examples",
+    "type",
+    "format",
+    "enum",
+    "const",
+    "allOf",
+    "anyOf",
+    "oneOf",
+    "not",
+    "if",
+    "then",
+    "else",
+    "multipleOf",
+    "maximum",
+    "exclusiveMaximum",
+    "minimum",
+    "exclusiveMinimum",
+    "maxLength",
+    "minLength",
+    "pattern",
+    "items",
+    "additionalItems",
+    "maxItems",
+    "minItems",
+    "uniqueItems",
+    "contains",
+    "maxProperties",
+    "minProperties",
+    "required",
+    "properties",
+    "patternProperties",
+    "additionalProperties",
+    "propertyNames",
+    "$ref",
+  ];
+
+  let mut reordered = Map::with_capacity(object.len());
+  for key in SCHEMARS_08_KEY_ORDER {
+    if let Some(value) = object.remove(*key) {
+      reordered.insert((*key).to_owned(), value);
+    }
+  }
+  reordered.append(object);
+  *object = reordered;
+}
+
+fn reorder_properties(schema: &mut Value, preferred_order: &[&str]) {
+  let Some(properties) = schema.get_mut("properties").and_then(Value::as_object_mut) else {
+    return;
+  };
+  let mut reordered = Map::with_capacity(properties.len());
+  for name in preferred_order {
+    if let Some(value) = properties.remove(*name) {
+      reordered.insert((*name).to_owned(), value);
+    }
+  }
+  reordered.append(properties);
+  *properties = reordered;
 }
 
 /// Recursively removes `enum`/`const` constraints from `schema` and every
@@ -118,11 +239,20 @@ fn main() {
   let mut generator = SchemaSettings::draft07().into_generator();
   let roots = root_definitions(&mut generator);
 
-  let mut definitions: Map<String, Value> = generator
-    .definitions()
-    .iter()
-    .map(|(name, schema)| (name.clone(), schema_value(schema.clone())))
-    .collect();
+  let mut definitions: Map<String, Value> = generator.take_definitions(true);
+  for schema in definitions.values_mut() {
+    normalize_schemars_08_output(schema);
+  }
+  // Schemars 1.x reorders fields around these custom inlined identifier
+  // schemas. Restore declaration order so the frozen artifact does not churn.
+  for type_name in ["CookieSourceDescriptor", "CookieSourceIdentity"] {
+    if let Some(schema) = definitions.get_mut(type_name) {
+      reorder_properties(
+        schema,
+        &["role", "format", "path", "path_lossy", "precedence"],
+      );
+    }
+  }
   // Open identifiers are validated snake_case strings, deliberately not a
   // closed enum -- see report_core.rs. Strip any `enum`/`const` constraint
   // schemars may have inferred so a generated DTO class stays forward
@@ -170,11 +300,7 @@ mod tests {
   fn generated_definitions_preserve_open_and_opaque_identifier_constraints() {
     let mut generator = SchemaSettings::draft07().into_generator();
     let _roots = root_definitions(&mut generator);
-    let definitions: Map<String, Value> = generator
-      .definitions()
-      .iter()
-      .map(|(name, schema)| (name.clone(), schema_value(schema.clone())))
-      .collect();
+    let definitions: Map<String, Value> = generator.take_definitions(true);
     let open = property(&definitions, "BrowserDescriptor", "id");
     assert_eq!(open["type"], "string");
     assert_eq!(open["minLength"], 1);
