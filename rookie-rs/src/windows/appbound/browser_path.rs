@@ -129,7 +129,7 @@ fn query_registry_app_paths(
     RegOpenKeyExW(
       hkey_root,
       PCWSTR(subkey_w.as_ptr()),
-      0,
+      Some(0),
       KEY_QUERY_VALUE,
       &mut key,
     )
