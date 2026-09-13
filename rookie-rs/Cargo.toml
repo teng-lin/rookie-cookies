@@ -78,8 +78,8 @@ e2e-appbound-steering = []
 [target.'cfg(unix)'.dependencies]
 aes = { version = "0.8", features = ["zeroize"] }
 cbc = { version = "0.1", features = ["zeroize"] }
-pbkdf2 = "0.12"
-sha1 = "0.10"
+pbkdf2 = "0.13"
+sha1 = "0.11"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 async-io = "2"
@@ -89,8 +89,8 @@ zbus = "5.19"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 libc = "0.2"
-pbkdf2 = "0.12"
-sha1 = "0.10"
+pbkdf2 = "0.13"
+sha1 = "0.11"
 
 [target.'cfg(windows)'.dependencies]
 aes-gcm = "0.10"
