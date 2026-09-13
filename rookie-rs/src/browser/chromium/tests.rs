@@ -470,16 +470,17 @@ fn windows_native_share_denied_valid_database_reaches_real_query_policy() {
 
 #[cfg(unix)]
 fn encrypt_unix_cbc_cookie(version: &[u8; 3], key: &[u8; 16], plaintext: &[u8]) -> Vec<u8> {
-  use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
+  use aes::cipher::{block_padding::Pkcs7, BlockModeEncrypt, KeyIvInit};
 
   type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 
   let iv = [b' '; 16];
-  let cipher = Aes128CbcEnc::new((&key[..]).into(), &iv.into());
+  let cipher =
+    Aes128CbcEnc::new_from_slices(key, &iv).expect("fixture key and IV must be 16 bytes");
   let mut buffer = vec![0; plaintext.len() + 16];
   buffer[..plaintext.len()].copy_from_slice(plaintext);
   let ciphertext = cipher
-    .encrypt_padded_mut::<Pkcs7>(&mut buffer, plaintext.len())
+    .encrypt_padded::<Pkcs7>(&mut buffer, plaintext.len())
     .expect("encrypt synthetic Chromium cookie");
   let mut encrypted_value = version.to_vec();
   encrypted_value.extend_from_slice(ciphertext);
