@@ -303,6 +303,24 @@ Platform quirks (Keychain prompts, Safari Full Disk Access):
 | Design | [architecture](docs/architecture.md) |
 | Examples | [python](examples/python) · [javascript](examples/javascript) · [rust](examples/rust) |
 
+## Related App-Bound Encryption research
+
+rookie-cookies' Windows Chromium cookie extraction operates in the same
+technical area as
+[`xaitax/Chrome-App-Bound-Encryption-Decryption`](https://github.com/xaitax/Chrome-App-Bound-Encryption-Decryption),
+a standalone security-research project covering Chromium App-Bound Encryption
+(ABE), `IElevator`, and `IElevator2`. Its detailed background material includes:
+
+- [Chrome ABE technical deep dive and research notes](https://github.com/xaitax/Chrome-App-Bound-Encryption-Decryption/blob/main/docs/RESEARCH.md)
+- [Decrypting Microsoft Edge ABE through its COM interfaces](https://github.com/xaitax/Chrome-App-Bound-Encryption-Decryption/blob/main/docs/The_Curious_Case_of_the_Cantankerous_COM_Decrypting_Microsoft_Edge_ABE.md)
+- [Chrome 144, `IElevator2`, and the Mojo horizon](https://github.com/xaitax/Chrome-App-Bound-Encryption-Decryption/blob/main/docs/The_Elevator_Gets_an_Upgrade_Chrome_144_IElevator2_and_the_Mojo_Horizon.md)
+- [COMrade ABE field manual](https://github.com/xaitax/Chrome-App-Bound-Encryption-Decryption/blob/main/docs/COMrade_ABE_Field_Manual.md)
+
+ChromElevator is a broader Windows security-research tool. rookie-cookies is a
+cookie-focused library and CLI for Rust, Python, and Node.js across Windows,
+macOS, and Linux; the links above are related technical reading rather than an
+API or runtime dependency.
+
 
 ## Credits
 
