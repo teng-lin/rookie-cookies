@@ -1,4 +1,4 @@
-use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
+use aes::cipher::{block_padding::Pkcs7, BlockModeDecrypt, KeyIvInit};
 use anyhow::{bail, Context, Result};
 use zeroize::Zeroizing;
 
@@ -87,7 +87,7 @@ fn decrypt(encrypted: Vec<u8>, aes_key: &[u8; 16], iv: &[u8]) -> Result<SecretBy
   let mut plaintext = SecretBytes::new(encrypted);
   let plaintext_len = Aes128CbcDec::new_from_slices(aes_key, iv)
     .map_err(|_| anyhow::anyhow!("Secret Service returned an invalid AES parameter"))?
-    .decrypt_padded_mut::<Pkcs7>(plaintext.as_mut_slice())
+    .decrypt_padded::<Pkcs7>(plaintext.as_mut_slice())
     .map_err(|_| anyhow::anyhow!("Secret Service confidential payload decryption failed"))?
     .len();
   plaintext.truncate(plaintext_len);
@@ -97,7 +97,7 @@ fn decrypt(encrypted: Vec<u8>, aes_key: &[u8; 16], iv: &[u8]) -> Result<SecretBy
 #[cfg(test)]
 mod tests {
   use super::*;
-  use aes::cipher::BlockEncryptMut;
+  use aes::cipher::BlockModeEncrypt;
   use sha2::Digest;
   use std::cell::RefCell;
 
@@ -188,7 +188,7 @@ mod tests {
       plaintext.as_mut_slice()[..sentinel.len()].copy_from_slice(sentinel);
       let encrypted_len = cbc::Encryptor::<aes::Aes128>::new_from_slices(&aes_key, &iv)
         .map_err(|_| anyhow::anyhow!("test encryption key or IV was invalid"))?
-        .encrypt_padded_mut::<Pkcs7>(plaintext.as_mut_slice(), sentinel.len())
+        .encrypt_padded::<Pkcs7>(plaintext.as_mut_slice(), sentinel.len())
         .map_err(|_| anyhow::anyhow!("test encryption failed"))?
         .len();
       let encrypted = plaintext.as_slice()[..encrypted_len].to_vec();
