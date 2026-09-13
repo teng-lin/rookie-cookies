@@ -228,8 +228,8 @@ mod helpers {
 #[cfg(target_os = "windows")]
 mod deterministic_dpapi {
   use aes_gcm::{
-    aead::{Aead, KeyInit},
-    Aes256Gcm, Nonce,
+    aead::{Aead, KeyInit, Nonce},
+    Aes256Gcm,
   };
   use base64::{engine::general_purpose, Engine as _};
   use rand::RngCore;
@@ -321,8 +321,9 @@ mod deterministic_dpapi {
     let mut nonce_bytes = [0u8; 12];
     rand::thread_rng().fill_bytes(&mut nonce_bytes);
     let cipher = Aes256Gcm::new_from_slice(aes_key).expect("32-byte AES key");
+    let nonce = Nonce::<Aes256Gcm>::try_from(nonce_bytes.as_slice()).expect("12-byte nonce");
     let ciphertext = cipher
-      .encrypt(Nonce::from_slice(&nonce_bytes), b"bar".as_ref())
+      .encrypt(&nonce, b"bar".as_ref())
       .expect("encrypt v10 cookie");
     let mut encrypted_value = b"v10".to_vec();
     encrypted_value.extend_from_slice(&nonce_bytes);

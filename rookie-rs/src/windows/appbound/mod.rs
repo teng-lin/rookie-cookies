@@ -7,7 +7,7 @@ use anyhow::{anyhow, bail, Result};
 use base64::{prelude::BASE64_STANDARD, Engine};
 
 use aes_gcm::{
-  aead::{generic_array::GenericArray, Aead, KeyInit},
+  aead::{Aead, KeyInit, Nonce},
   Aes256Gcm,
 };
 use chacha20poly1305::ChaCha20Poly1305;
@@ -73,10 +73,8 @@ where
   let iv = iv_and_ciphertext.get(..12)?;
   let ciphertext = iv_and_ciphertext.get(12..)?;
   let cipher = C::new_from_slice(key).ok()?;
-  cipher
-    .decrypt(GenericArray::from_slice(iv), ciphertext)
-    .map(Zeroizing::new)
-    .ok()
+  let nonce = Nonce::<C>::try_from(iv).ok()?;
+  cipher.decrypt(&nonce, ciphertext).map(Zeroizing::new).ok()
 }
 
 fn read_u32_le(blob: &[u8], offset: usize) -> Result<u32> {
@@ -459,9 +457,8 @@ mod tests {
   // key, so it is exercised by manual/integration testing rather than here.
   fn seal<C: KeyInit + Aead>(key: &[u8], iv: &[u8; 12], plaintext: &[u8]) -> Vec<u8> {
     let cipher = C::new_from_slice(key).expect("key length");
-    cipher
-      .encrypt(GenericArray::from_slice(iv), plaintext)
-      .expect("encrypt")
+    let nonce = Nonce::<C>::try_from(iv.as_slice()).expect("nonce length");
+    cipher.encrypt(&nonce, plaintext).expect("encrypt")
   }
 
   fn content_for(flag: u8, iv: &[u8; 12], ciphertext_and_tag: &[u8]) -> Vec<u8> {
