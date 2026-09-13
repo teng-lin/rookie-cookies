@@ -329,7 +329,7 @@ pub fn inject_and_extract_key(
   let created = unsafe {
     CreateProcessW(
       PCWSTR(app_name_w.as_ptr()),
-      PWSTR(cmd_line_w.as_mut_ptr()),
+      Some(PWSTR(cmd_line_w.as_mut_ptr())),
       None,
       None,
       false,

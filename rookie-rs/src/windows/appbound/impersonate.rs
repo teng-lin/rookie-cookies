@@ -4,8 +4,9 @@ use std::{
 };
 
 use anyhow::{bail, Result};
+use windows::core::BOOL;
 use windows::Win32::{
-  Foundation::{CloseHandle, BOOL, ERROR_NO_TOKEN, HANDLE, NTSTATUS, WIN32_ERROR},
+  Foundation::{CloseHandle, ERROR_NO_TOKEN, HANDLE, NTSTATUS, WIN32_ERROR},
   Security::{
     DuplicateToken, ImpersonateLoggedOnUser, RevertToSelf, TOKEN_DUPLICATE, TOKEN_IMPERSONATE,
     TOKEN_QUERY,
@@ -149,7 +150,7 @@ fn get_process_name(pid: u32) -> Result<String> {
       pid,
     )?);
     if process_handle.0.is_invalid() {
-      return Err(windows::core::Error::from_win32().into());
+      return Err(windows::core::Error::from_thread().into());
     }
     let mut buffer = vec![0u16; 260]; // 260 is the max path length in Windows
 
@@ -196,7 +197,7 @@ fn get_process_handle(pid: u32) -> Result<HANDLE> {
 
     // Check if the handle is valid
     if process_handle.is_invalid() {
-      Err(windows::core::Error::from_win32().into())
+      Err(windows::core::Error::from_thread().into())
     } else {
       Ok(process_handle)
     }
@@ -276,7 +277,7 @@ fn restore_thread_identity(
   // token or revert the thread to the process identity.
   unsafe {
     match previous_thread_token {
-      Some(token) => SetThreadToken(None, token.0),
+      Some(token) => SetThreadToken(None, Some(token.0)),
       None => RevertToSelf(),
     }
   }
