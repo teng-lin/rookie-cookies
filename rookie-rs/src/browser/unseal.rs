@@ -953,19 +953,19 @@ mod tests {
   #[cfg(unix)]
   #[test]
   fn decrypt_encrypted_value_invalid_utf8_returns_error() {
-    use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
+    use aes::cipher::{block_padding::Pkcs7, BlockModeEncrypt, KeyIvInit};
 
     type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 
     let key = vec![0u8; 16];
     let iv = [b' '; 16];
-    let cipher = Aes128CbcEnc::new((&key[..16]).into(), &iv.into());
+    let cipher = Aes128CbcEnc::new_from_slices(&key, &iv).unwrap();
 
     let data = vec![0xffu8; 16];
     let mut buf = vec![0u8; 32];
     buf[..16].copy_from_slice(&data);
 
-    let ct = cipher.encrypt_padded_mut::<Pkcs7>(&mut buf, 16).unwrap();
+    let ct = cipher.encrypt_padded::<Pkcs7>(&mut buf, 16).unwrap();
 
     let mut encrypted_value = b"v10".to_vec();
     encrypted_value.extend_from_slice(ct);
@@ -979,7 +979,7 @@ mod tests {
   #[cfg(unix)]
   #[test]
   fn decrypt_encrypted_value_decodes_host_hash_prefixed_plaintext() {
-    use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
+    use aes::cipher::{block_padding::Pkcs7, BlockModeEncrypt, KeyIvInit};
 
     type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 
@@ -988,9 +988,9 @@ mod tests {
     let plaintext = host_bound_plaintext(".example.com", b"cookie value");
     let mut ciphertext_buffer = vec![0u8; plaintext.len() + 16];
     ciphertext_buffer[..plaintext.len()].copy_from_slice(&plaintext);
-    let cipher = Aes128CbcEnc::new((&key[..]).into(), &iv.into());
+    let cipher = Aes128CbcEnc::new_from_slices(&key, &iv).unwrap();
     let ciphertext = cipher
-      .encrypt_padded_mut::<Pkcs7>(&mut ciphertext_buffer, plaintext.len())
+      .encrypt_padded::<Pkcs7>(&mut ciphertext_buffer, plaintext.len())
       .expect("encrypt fixture");
 
     let mut encrypted_value = b"v10".to_vec();
@@ -1005,7 +1005,7 @@ mod tests {
   #[cfg(unix)]
   #[test]
   fn decrypt_encrypted_value_tries_next_key_after_invalid_utf8() {
-    use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+    use aes::cipher::{block_padding::Pkcs7, BlockModeDecrypt, BlockModeEncrypt, KeyIvInit};
 
     type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
     type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
@@ -1015,9 +1015,9 @@ mod tests {
     let expected = b"valid cookie value";
     let mut ciphertext_buffer = vec![0u8; expected.len() + 16];
     ciphertext_buffer[..expected.len()].copy_from_slice(expected);
-    let cipher = Aes128CbcEnc::new((&correct_key[..]).into(), &iv.into());
+    let cipher = Aes128CbcEnc::new_from_slices(&correct_key, &iv).unwrap();
     let ciphertext = cipher
-      .encrypt_padded_mut::<Pkcs7>(&mut ciphertext_buffer, expected.len())
+      .encrypt_padded::<Pkcs7>(&mut ciphertext_buffer, expected.len())
       .expect("encrypt fixture")
       .to_vec();
 
@@ -1025,10 +1025,10 @@ mod tests {
       .find_map(|candidate| {
         let mut key = vec![0; 16];
         key[..2].copy_from_slice(&candidate.to_le_bytes());
-        let cipher = Aes128CbcDec::new((&key[..]).into(), &iv.into());
+        let cipher = Aes128CbcDec::new_from_slices(&key, &iv).unwrap();
         let mut candidate_ciphertext = ciphertext.clone();
         let plaintext = cipher
-          .decrypt_padded_mut::<Pkcs7>(&mut candidate_ciphertext)
+          .decrypt_padded::<Pkcs7>(&mut candidate_ciphertext)
           .ok()?;
         String::from_utf8(plaintext.to_vec())
           .is_err()

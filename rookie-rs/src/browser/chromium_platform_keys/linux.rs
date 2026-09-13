@@ -280,14 +280,15 @@ mod tests {
 
   /// Seals `plaintext` the way Chromium's Linux v11 cipher does.
   fn seal_v11(key: &[u8], plaintext: &[u8]) -> Vec<u8> {
-    use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
+    use aes::cipher::{block_padding::Pkcs7, BlockModeEncrypt, KeyIvInit};
 
     type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 
     let mut buffer = vec![0u8; plaintext.len() + 16];
     buffer[..plaintext.len()].copy_from_slice(plaintext);
-    let ciphertext = Aes128CbcEnc::new(key.into(), &[b' '; 16].into())
-      .encrypt_padded_mut::<Pkcs7>(&mut buffer, plaintext.len())
+    let ciphertext = Aes128CbcEnc::new_from_slices(key, &[b' '; 16])
+      .expect("fixture key and IV must be 16 bytes")
+      .encrypt_padded::<Pkcs7>(&mut buffer, plaintext.len())
       .expect("encrypt fixture");
     let mut sealed = b"v11".to_vec();
     sealed.extend_from_slice(ciphertext);
