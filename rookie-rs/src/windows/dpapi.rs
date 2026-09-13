@@ -76,7 +76,7 @@ pub(crate) fn decrypt(keydpapi: &[u8]) -> Result<SecretBytes> {
     if !local_free_result.is_null() {
       return Err(anyhow!(
         "LocalFree failed: {}",
-        windows::core::Error::from_win32()
+        windows::core::Error::from_thread()
       ));
     }
   };

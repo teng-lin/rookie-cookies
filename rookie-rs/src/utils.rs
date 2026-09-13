@@ -3,15 +3,10 @@ use std::path::{Path, PathBuf};
 
 use crate::common::diagnostic::REDACTED_PATH;
 use anyhow::Result;
-use rand::distributions::Alphanumeric;
-use rand::Rng;
+use rand::distr::{Alphanumeric, SampleString};
 
 pub fn random_string(length: usize, prefix: &str, suffix: &str) -> String {
-  let random_part: String = rand::thread_rng()
-    .sample_iter(&Alphanumeric)
-    .take(length)
-    .map(char::from)
-    .collect();
+  let random_part = Alphanumeric.sample_string(&mut rand::rng(), length);
 
   format!("{}{}{}", prefix, random_part, suffix)
 }

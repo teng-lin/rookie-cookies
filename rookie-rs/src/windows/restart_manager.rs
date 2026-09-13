@@ -34,17 +34,23 @@ impl Drop for RestartManagerSession {
   }
 }
 
-fn check_restart_manager(operation: &str, result: u32) -> Result<()> {
-  if WIN32_ERROR(result) == ERROR_SUCCESS {
+fn check_restart_manager(operation: &str, result: WIN32_ERROR) -> Result<()> {
+  if result == ERROR_SUCCESS {
     Ok(())
   } else {
-    bail!("Restart Manager {operation} failed with Windows error {result}")
+    bail!(
+      "Restart Manager {operation} failed with Windows error {}",
+      result.0
+    )
   }
 }
 
-fn affected_process_count(result: u32, needed: u32, supplied: u32) -> Result<u32> {
-  if WIN32_ERROR(result) != ERROR_SUCCESS && WIN32_ERROR(result) != ERROR_MORE_DATA {
-    bail!("Restart Manager RmGetList failed with Windows error {result}");
+fn affected_process_count(result: WIN32_ERROR, needed: u32, supplied: u32) -> Result<u32> {
+  if result != ERROR_SUCCESS && result != ERROR_MORE_DATA {
+    bail!(
+      "Restart Manager RmGetList failed with Windows error {}",
+      result.0
+    );
   }
 
   Ok(needed.max(supplied))
@@ -80,8 +86,12 @@ pub(crate) unsafe fn release_file_lock(
   runtime.check()?;
   let mut session = 0_u32;
   let mut session_key_buffer = [0_u16; (CCH_RM_SESSION_KEY as usize) + 1];
-  let start_result = RmStartSession(&mut session, 0, PWSTR(session_key_buffer.as_mut_ptr()));
-  if WIN32_ERROR(start_result) != ERROR_SUCCESS {
+  let start_result = RmStartSession(
+    &mut session,
+    Some(0),
+    PWSTR(session_key_buffer.as_mut_ptr()),
+  );
+  if start_result != ERROR_SUCCESS {
     runtime.check()?;
     check_restart_manager("RmStartSession", start_result)?;
     unreachable!("a failed Restart Manager session cannot pass result validation");
@@ -198,17 +208,19 @@ mod tests {
 
   #[test]
   fn affected_process_count_accepts_unlocked_query() {
-    assert_eq!(affected_process_count(ERROR_SUCCESS.0, 0, 0).unwrap(), 0);
+    assert_eq!(affected_process_count(ERROR_SUCCESS, 0, 0).unwrap(), 0);
   }
 
   #[test]
   fn affected_process_count_uses_required_buffer_size() {
-    assert_eq!(affected_process_count(ERROR_MORE_DATA.0, 3, 0).unwrap(), 3);
+    assert_eq!(affected_process_count(ERROR_MORE_DATA, 3, 0).unwrap(), 3);
   }
 
   #[test]
   fn affected_process_count_rejects_restart_manager_errors() {
-    let error = affected_process_count(5, 0, 0).unwrap_err().to_string();
+    let error = affected_process_count(WIN32_ERROR(5), 0, 0)
+      .unwrap_err()
+      .to_string();
     assert_eq!(
       error,
       "Restart Manager RmGetList failed with Windows error 5"

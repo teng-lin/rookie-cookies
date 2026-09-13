@@ -1,5 +1,5 @@
 use super::LegacyCipherOutcome;
-use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
+use aes::cipher::{block_padding::Pkcs7, BlockModeDecrypt, KeyIvInit};
 use anyhow::{anyhow, Result};
 
 use crate::common::secret::SecretBytes;
@@ -28,7 +28,7 @@ pub(super) fn decrypt_keyed_candidate(encrypted_value: &[u8], key: &[u8]) -> Res
       .to_vec(),
   );
   cipher
-    .decrypt_padded_mut::<Pkcs7>(plaintext.as_mut_slice())
+    .decrypt_padded::<Pkcs7>(plaintext.as_mut_slice())
     .map(|decrypted| decrypted.len())
     .map(|plaintext_len| {
       plaintext.truncate(plaintext_len);
