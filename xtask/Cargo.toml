@@ -9,7 +9,7 @@ publish = false
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
 syn = { version = "2", features = ["full", "visit", "extra-traits"] }
-toml = "0.8"
+toml = "1.1"
 walkdir = "2"
 serde = { version = "1", features = ["derive"] }
 
