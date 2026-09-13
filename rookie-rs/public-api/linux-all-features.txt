@@ -22,9 +22,10 @@ impl core::hash::Hash for rookie_cookies::common::enums::Cookie
 pub fn rookie_cookies::common::enums::Cookie::hash<__H: core::hash::Hasher>(&self, &mut __H)
 impl core::marker::StructuralPartialEq for rookie_cookies::common::enums::Cookie
 impl schemars::JsonSchema for rookie_cookies::common::enums::Cookie
-pub fn rookie_cookies::common::enums::Cookie::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::common::enums::Cookie::inline_schema() -> bool
+pub fn rookie_cookies::common::enums::Cookie::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::common::enums::Cookie::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::common::enums::Cookie::schema_name() -> alloc::string::String
+pub fn rookie_cookies::common::enums::Cookie::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::common::enums::Cookie
 pub fn rookie_cookies::common::enums::Cookie::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::common::enums::Cookie
@@ -330,9 +331,10 @@ impl core::hash::Hash for rookie_cookies::common::enums::Cookie
 pub fn rookie_cookies::common::enums::Cookie::hash<__H: core::hash::Hasher>(&self, &mut __H)
 impl core::marker::StructuralPartialEq for rookie_cookies::common::enums::Cookie
 impl schemars::JsonSchema for rookie_cookies::common::enums::Cookie
-pub fn rookie_cookies::common::enums::Cookie::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::common::enums::Cookie::inline_schema() -> bool
+pub fn rookie_cookies::common::enums::Cookie::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::common::enums::Cookie::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::common::enums::Cookie::schema_name() -> alloc::string::String
+pub fn rookie_cookies::common::enums::Cookie::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::common::enums::Cookie
 pub fn rookie_cookies::common::enums::Cookie::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::common::enums::Cookie
@@ -435,10 +437,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::AcquisitionStrategyC
 pub type rookie_cookies::report::AcquisitionStrategyCode::Err = anyhow::Error
 pub fn rookie_cookies::report::AcquisitionStrategyCode::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::AcquisitionStrategyCode
-pub fn rookie_cookies::report::AcquisitionStrategyCode::is_referenceable() -> bool
-pub fn rookie_cookies::report::AcquisitionStrategyCode::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::AcquisitionStrategyCode::inline_schema() -> bool
+pub fn rookie_cookies::report::AcquisitionStrategyCode::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::AcquisitionStrategyCode::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::AcquisitionStrategyCode::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::AcquisitionStrategyCode::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::AcquisitionStrategyCode
 pub fn rookie_cookies::report::AcquisitionStrategyCode::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::AcquisitionStrategyCode
@@ -463,9 +465,10 @@ impl core::fmt::Debug for rookie_cookies::report::BrowserCapabilitiesDescriptor
 pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for rookie_cookies::report::BrowserCapabilitiesDescriptor
 impl schemars::JsonSchema for rookie_cookies::report::BrowserCapabilitiesDescriptor
-pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::inline_schema() -> bool
+pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::BrowserCapabilitiesDescriptor
 pub fn rookie_cookies::report::BrowserCapabilitiesDescriptor::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::BrowserCapabilitiesDescriptor
@@ -491,9 +494,10 @@ impl core::fmt::Debug for rookie_cookies::report::BrowserDescriptor
 pub fn rookie_cookies::report::BrowserDescriptor::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for rookie_cookies::report::BrowserDescriptor
 impl schemars::JsonSchema for rookie_cookies::report::BrowserDescriptor
-pub fn rookie_cookies::report::BrowserDescriptor::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::BrowserDescriptor::inline_schema() -> bool
+pub fn rookie_cookies::report::BrowserDescriptor::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::BrowserDescriptor::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::BrowserDescriptor::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::BrowserDescriptor::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::BrowserDescriptor
 pub fn rookie_cookies::report::BrowserDescriptor::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::BrowserDescriptor
@@ -529,10 +533,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::BrowserId
 pub type rookie_cookies::report::BrowserId::Err = anyhow::Error
 pub fn rookie_cookies::report::BrowserId::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::BrowserId
-pub fn rookie_cookies::report::BrowserId::is_referenceable() -> bool
-pub fn rookie_cookies::report::BrowserId::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::BrowserId::inline_schema() -> bool
+pub fn rookie_cookies::report::BrowserId::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::BrowserId::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::BrowserId::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::BrowserId::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::BrowserId
 pub fn rookie_cookies::report::BrowserId::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::BrowserId
@@ -568,10 +572,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::CipherTierId
 pub type rookie_cookies::report::CipherTierId::Err = anyhow::Error
 pub fn rookie_cookies::report::CipherTierId::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::CipherTierId
-pub fn rookie_cookies::report::CipherTierId::is_referenceable() -> bool
-pub fn rookie_cookies::report::CipherTierId::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::CipherTierId::inline_schema() -> bool
+pub fn rookie_cookies::report::CipherTierId::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::CipherTierId::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::CipherTierId::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::CipherTierId::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::CipherTierId
 pub fn rookie_cookies::report::CipherTierId::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::CipherTierId
@@ -597,9 +601,10 @@ impl core::fmt::Debug for rookie_cookies::report::CookieSourceDescriptor
 pub fn rookie_cookies::report::CookieSourceDescriptor::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for rookie_cookies::report::CookieSourceDescriptor
 impl schemars::JsonSchema for rookie_cookies::report::CookieSourceDescriptor
-pub fn rookie_cookies::report::CookieSourceDescriptor::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::CookieSourceDescriptor::inline_schema() -> bool
+pub fn rookie_cookies::report::CookieSourceDescriptor::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::CookieSourceDescriptor::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::CookieSourceDescriptor::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::CookieSourceDescriptor::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::CookieSourceDescriptor
 pub fn rookie_cookies::report::CookieSourceDescriptor::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::CookieSourceDescriptor
@@ -635,10 +640,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::CookieSourceFormatId
 pub type rookie_cookies::report::CookieSourceFormatId::Err = anyhow::Error
 pub fn rookie_cookies::report::CookieSourceFormatId::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::CookieSourceFormatId
-pub fn rookie_cookies::report::CookieSourceFormatId::is_referenceable() -> bool
-pub fn rookie_cookies::report::CookieSourceFormatId::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::CookieSourceFormatId::inline_schema() -> bool
+pub fn rookie_cookies::report::CookieSourceFormatId::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::CookieSourceFormatId::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::CookieSourceFormatId::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::CookieSourceFormatId::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::CookieSourceFormatId
 pub fn rookie_cookies::report::CookieSourceFormatId::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::CookieSourceFormatId
@@ -664,9 +669,10 @@ impl core::fmt::Debug for rookie_cookies::report::CookieSourceIdentity
 pub fn rookie_cookies::report::CookieSourceIdentity::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for rookie_cookies::report::CookieSourceIdentity
 impl schemars::JsonSchema for rookie_cookies::report::CookieSourceIdentity
-pub fn rookie_cookies::report::CookieSourceIdentity::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::CookieSourceIdentity::inline_schema() -> bool
+pub fn rookie_cookies::report::CookieSourceIdentity::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::CookieSourceIdentity::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::CookieSourceIdentity::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::CookieSourceIdentity::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::CookieSourceIdentity
 pub fn rookie_cookies::report::CookieSourceIdentity::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::CookieSourceIdentity
@@ -705,10 +711,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::CookieSourceRoleId
 pub type rookie_cookies::report::CookieSourceRoleId::Err = anyhow::Error
 pub fn rookie_cookies::report::CookieSourceRoleId::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::CookieSourceRoleId
-pub fn rookie_cookies::report::CookieSourceRoleId::is_referenceable() -> bool
-pub fn rookie_cookies::report::CookieSourceRoleId::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::CookieSourceRoleId::inline_schema() -> bool
+pub fn rookie_cookies::report::CookieSourceRoleId::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::CookieSourceRoleId::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::CookieSourceRoleId::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::CookieSourceRoleId::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::CookieSourceRoleId
 pub fn rookie_cookies::report::CookieSourceRoleId::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::CookieSourceRoleId
@@ -744,10 +750,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::EngineId
 pub type rookie_cookies::report::EngineId::Err = anyhow::Error
 pub fn rookie_cookies::report::EngineId::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::EngineId
-pub fn rookie_cookies::report::EngineId::is_referenceable() -> bool
-pub fn rookie_cookies::report::EngineId::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::EngineId::inline_schema() -> bool
+pub fn rookie_cookies::report::EngineId::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::EngineId::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::EngineId::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::EngineId::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::EngineId
 pub fn rookie_cookies::report::EngineId::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::EngineId
@@ -781,9 +787,10 @@ impl core::fmt::Debug for rookie_cookies::report::ExtractionIssue
 pub fn rookie_cookies::report::ExtractionIssue::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for rookie_cookies::report::ExtractionIssue
 impl schemars::JsonSchema for rookie_cookies::report::ExtractionIssue
-pub fn rookie_cookies::report::ExtractionIssue::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ExtractionIssue::inline_schema() -> bool
+pub fn rookie_cookies::report::ExtractionIssue::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ExtractionIssue::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ExtractionIssue::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ExtractionIssue::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ExtractionIssue
 pub fn rookie_cookies::report::ExtractionIssue::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ExtractionIssue
@@ -804,9 +811,10 @@ pub rookie_cookies::report::ExtractionReport::termination: rookie_cookies::repor
 impl core::fmt::Debug for rookie_cookies::report::ExtractionReport
 pub fn rookie_cookies::report::ExtractionReport::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl schemars::JsonSchema for rookie_cookies::report::ExtractionReport
-pub fn rookie_cookies::report::ExtractionReport::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ExtractionReport::inline_schema() -> bool
+pub fn rookie_cookies::report::ExtractionReport::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ExtractionReport::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ExtractionReport::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ExtractionReport::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ExtractionReport
 pub fn rookie_cookies::report::ExtractionReport::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ExtractionReport
@@ -850,10 +858,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::ExtractionStageCode
 pub type rookie_cookies::report::ExtractionStageCode::Err = anyhow::Error
 pub fn rookie_cookies::report::ExtractionStageCode::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::ExtractionStageCode
-pub fn rookie_cookies::report::ExtractionStageCode::is_referenceable() -> bool
-pub fn rookie_cookies::report::ExtractionStageCode::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ExtractionStageCode::inline_schema() -> bool
+pub fn rookie_cookies::report::ExtractionStageCode::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ExtractionStageCode::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ExtractionStageCode::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ExtractionStageCode::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ExtractionStageCode
 pub fn rookie_cookies::report::ExtractionStageCode::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ExtractionStageCode
@@ -884,9 +892,10 @@ pub fn rookie_cookies::report::ExtractionStats::fmt(&self, &mut core::fmt::Forma
 impl core::marker::Copy for rookie_cookies::report::ExtractionStats
 impl core::marker::StructuralPartialEq for rookie_cookies::report::ExtractionStats
 impl schemars::JsonSchema for rookie_cookies::report::ExtractionStats
-pub fn rookie_cookies::report::ExtractionStats::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ExtractionStats::inline_schema() -> bool
+pub fn rookie_cookies::report::ExtractionStats::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ExtractionStats::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ExtractionStats::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ExtractionStats::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ExtractionStats
 pub fn rookie_cookies::report::ExtractionStats::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ExtractionStats
@@ -922,10 +931,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::InstallationId
 pub type rookie_cookies::report::InstallationId::Err = anyhow::Error
 pub fn rookie_cookies::report::InstallationId::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::InstallationId
-pub fn rookie_cookies::report::InstallationId::is_referenceable() -> bool
-pub fn rookie_cookies::report::InstallationId::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::InstallationId::inline_schema() -> bool
+pub fn rookie_cookies::report::InstallationId::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::InstallationId::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::InstallationId::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::InstallationId::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::InstallationId
 pub fn rookie_cookies::report::InstallationId::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::InstallationId
@@ -972,10 +981,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::IssueCode
 pub type rookie_cookies::report::IssueCode::Err = anyhow::Error
 pub fn rookie_cookies::report::IssueCode::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::IssueCode
-pub fn rookie_cookies::report::IssueCode::is_referenceable() -> bool
-pub fn rookie_cookies::report::IssueCode::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::IssueCode::inline_schema() -> bool
+pub fn rookie_cookies::report::IssueCode::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::IssueCode::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::IssueCode::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::IssueCode::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::IssueCode
 pub fn rookie_cookies::report::IssueCode::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::IssueCode
@@ -1015,10 +1024,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::IssueSeverityCode
 pub type rookie_cookies::report::IssueSeverityCode::Err = anyhow::Error
 pub fn rookie_cookies::report::IssueSeverityCode::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::IssueSeverityCode
-pub fn rookie_cookies::report::IssueSeverityCode::is_referenceable() -> bool
-pub fn rookie_cookies::report::IssueSeverityCode::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::IssueSeverityCode::inline_schema() -> bool
+pub fn rookie_cookies::report::IssueSeverityCode::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::IssueSeverityCode::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::IssueSeverityCode::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::IssueSeverityCode::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::IssueSeverityCode
 pub fn rookie_cookies::report::IssueSeverityCode::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::IssueSeverityCode
@@ -1042,9 +1051,10 @@ impl core::fmt::Debug for rookie_cookies::report::ProfileDescriptor
 pub fn rookie_cookies::report::ProfileDescriptor::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for rookie_cookies::report::ProfileDescriptor
 impl schemars::JsonSchema for rookie_cookies::report::ProfileDescriptor
-pub fn rookie_cookies::report::ProfileDescriptor::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ProfileDescriptor::inline_schema() -> bool
+pub fn rookie_cookies::report::ProfileDescriptor::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ProfileDescriptor::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ProfileDescriptor::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ProfileDescriptor::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ProfileDescriptor
 pub fn rookie_cookies::report::ProfileDescriptor::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ProfileDescriptor
@@ -1063,9 +1073,10 @@ pub rookie_cookies::report::ProfileExtraction::stats: rookie_cookies::report::Ex
 impl core::fmt::Debug for rookie_cookies::report::ProfileExtraction
 pub fn rookie_cookies::report::ProfileExtraction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl schemars::JsonSchema for rookie_cookies::report::ProfileExtraction
-pub fn rookie_cookies::report::ProfileExtraction::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ProfileExtraction::inline_schema() -> bool
+pub fn rookie_cookies::report::ProfileExtraction::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ProfileExtraction::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ProfileExtraction::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ProfileExtraction::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ProfileExtraction
 pub fn rookie_cookies::report::ProfileExtraction::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ProfileExtraction
@@ -1101,10 +1112,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::ProfileId
 pub type rookie_cookies::report::ProfileId::Err = anyhow::Error
 pub fn rookie_cookies::report::ProfileId::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::ProfileId
-pub fn rookie_cookies::report::ProfileId::is_referenceable() -> bool
-pub fn rookie_cookies::report::ProfileId::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ProfileId::inline_schema() -> bool
+pub fn rookie_cookies::report::ProfileId::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ProfileId::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ProfileId::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ProfileId::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ProfileId
 pub fn rookie_cookies::report::ProfileId::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ProfileId
@@ -1131,9 +1142,10 @@ impl core::fmt::Debug for rookie_cookies::report::ProfileIdentity
 pub fn rookie_cookies::report::ProfileIdentity::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for rookie_cookies::report::ProfileIdentity
 impl schemars::JsonSchema for rookie_cookies::report::ProfileIdentity
-pub fn rookie_cookies::report::ProfileIdentity::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ProfileIdentity::inline_schema() -> bool
+pub fn rookie_cookies::report::ProfileIdentity::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ProfileIdentity::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ProfileIdentity::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ProfileIdentity::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ProfileIdentity
 pub fn rookie_cookies::report::ProfileIdentity::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ProfileIdentity
@@ -1170,9 +1182,10 @@ pub fn rookie_cookies::report::ReportStats::fmt(&self, &mut core::fmt::Formatter
 impl core::marker::Copy for rookie_cookies::report::ReportStats
 impl core::marker::StructuralPartialEq for rookie_cookies::report::ReportStats
 impl schemars::JsonSchema for rookie_cookies::report::ReportStats
-pub fn rookie_cookies::report::ReportStats::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ReportStats::inline_schema() -> bool
+pub fn rookie_cookies::report::ReportStats::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ReportStats::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ReportStats::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ReportStats::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ReportStats
 pub fn rookie_cookies::report::ReportStats::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ReportStats
@@ -1213,10 +1226,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::ReportStatusCode
 pub type rookie_cookies::report::ReportStatusCode::Err = anyhow::Error
 pub fn rookie_cookies::report::ReportStatusCode::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::ReportStatusCode
-pub fn rookie_cookies::report::ReportStatusCode::is_referenceable() -> bool
-pub fn rookie_cookies::report::ReportStatusCode::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::ReportStatusCode::inline_schema() -> bool
+pub fn rookie_cookies::report::ReportStatusCode::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::ReportStatusCode::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::ReportStatusCode::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::ReportStatusCode::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::ReportStatusCode
 pub fn rookie_cookies::report::ReportStatusCode::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::ReportStatusCode
@@ -1238,9 +1251,10 @@ pub rookie_cookies::report::SourceExtraction::status: rookie_cookies::report::So
 impl core::fmt::Debug for rookie_cookies::report::SourceExtraction
 pub fn rookie_cookies::report::SourceExtraction::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl schemars::JsonSchema for rookie_cookies::report::SourceExtraction
-pub fn rookie_cookies::report::SourceExtraction::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::SourceExtraction::inline_schema() -> bool
+pub fn rookie_cookies::report::SourceExtraction::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::SourceExtraction::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::SourceExtraction::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::SourceExtraction::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::SourceExtraction
 pub fn rookie_cookies::report::SourceExtraction::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::SourceExtraction
@@ -1279,10 +1293,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::SourceStatusCode
 pub type rookie_cookies::report::SourceStatusCode::Err = anyhow::Error
 pub fn rookie_cookies::report::SourceStatusCode::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::SourceStatusCode
-pub fn rookie_cookies::report::SourceStatusCode::is_referenceable() -> bool
-pub fn rookie_cookies::report::SourceStatusCode::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::SourceStatusCode::inline_schema() -> bool
+pub fn rookie_cookies::report::SourceStatusCode::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::SourceStatusCode::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::SourceStatusCode::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::SourceStatusCode::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::SourceStatusCode
 pub fn rookie_cookies::report::SourceStatusCode::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::SourceStatusCode
@@ -1323,10 +1337,10 @@ impl core::str::traits::FromStr for rookie_cookies::report::TerminationCode
 pub type rookie_cookies::report::TerminationCode::Err = anyhow::Error
 pub fn rookie_cookies::report::TerminationCode::from_str(&str) -> anyhow::Result<Self>
 impl schemars::JsonSchema for rookie_cookies::report::TerminationCode
-pub fn rookie_cookies::report::TerminationCode::is_referenceable() -> bool
-pub fn rookie_cookies::report::TerminationCode::json_schema(&mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema
+pub fn rookie_cookies::report::TerminationCode::inline_schema() -> bool
+pub fn rookie_cookies::report::TerminationCode::json_schema(&mut schemars::generate::SchemaGenerator) -> schemars::schema::Schema
 pub fn rookie_cookies::report::TerminationCode::schema_id() -> alloc::borrow::Cow<'static, str>
-pub fn rookie_cookies::report::TerminationCode::schema_name() -> alloc::string::String
+pub fn rookie_cookies::report::TerminationCode::schema_name() -> alloc::borrow::Cow<'static, str>
 impl serde_core::ser::Serialize for rookie_cookies::report::TerminationCode
 pub fn rookie_cookies::report::TerminationCode::serialize<__S>(&self, __S) -> core::result::Result<<__S as serde_core::ser::Serializer>::Ok, <__S as serde_core::ser::Serializer>::Error> where __S: serde_core::ser::Serializer
 impl<'de> serde_core::de::Deserialize<'de> for rookie_cookies::report::TerminationCode
