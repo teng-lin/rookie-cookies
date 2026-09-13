@@ -1,6 +1,21 @@
 {
   "name": "rookie-cookies",
   "version": "0.6.0",
+  "description": "Cross-platform browser cookie extraction and decryption for Node.js",
+  "keywords": [
+    "browser-cookies",
+    "cookie-extraction",
+    "cookie-decryption",
+    "chrome-cookies",
+    "firefox-cookies",
+    "safari-cookies",
+    "app-bound-encryption",
+    "cross-platform"
+  ],
+  "homepage": "https://github.com/teng-lin/rookie-cookies#readme",
+  "bugs": {
+    "url": "https://github.com/teng-lin/rookie-cookies/issues"
+  },
   "readme": "README.md",
   "main": "index.js",
   "types": "index.d.ts",
@@ -49,6 +64,5 @@
     "rookie-cookies-linux-x64-gnu": "0.6.0",
     "rookie-cookies-win32-x64-msvc": "0.6.0"
   },
-  "repository": "https://github.com/teng-lin/rookie-cookies",
-  "description": "Load cookies from any browser on any platform"
+  "repository": "https://github.com/teng-lin/rookie-cookies"
 }

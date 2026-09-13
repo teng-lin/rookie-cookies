@@ -4,9 +4,18 @@ build-backend = "maturin"
 
 [project]
 name = "rookie-cookies"
-description = "Load cookies from any browser on any platform"
+description = "Cross-platform browser cookie extraction and decryption for Python"
 readme = "README.md"
 license = "MIT"
+keywords = [
+    "browser cookies",
+    "cookie extraction",
+    "cookie decryption",
+    "Chrome",
+    "Firefox",
+    "Safari",
+    "App-Bound Encryption",
+]
 authors = [
     {name = "thewh1teagle"},
     {name = "Teng Lin"},
@@ -37,6 +46,8 @@ Homepage = "https://github.com/teng-lin/rookie-cookies"
 Documentation = "https://github.com/teng-lin/rookie-cookies/blob/main/bindings/python/README.md"
 Repository = "https://github.com/teng-lin/rookie-cookies"
 Issues = "https://github.com/teng-lin/rookie-cookies/issues"
+Changelog = "https://github.com/teng-lin/rookie-cookies/blob/main/CHANGELOG.md"
+Security = "https://github.com/teng-lin/rookie-cookies/security/policy"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]

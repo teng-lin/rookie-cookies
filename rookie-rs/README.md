@@ -1,6 +1,7 @@
 # rookie-cookies (Rust)
 
-Extract cookies from local browsers on Linux, macOS, and Windows.
+Cross-platform browser cookie extraction and decryption for Rust on Linux,
+macOS, and Windows.
 
 This file is the **Rust crate guide** (crates.io landing page and repo
 tutorial). Python and Node live in

@@ -3,6 +3,11 @@ name = "rookie-cookies-cli"
 version.workspace = true
 edition = "2021"
 rust-version.workspace = true
+description = "Cross-platform browser cookie extraction and decryption CLI"
+license-file = "../LICENSE.md"
+repository = "https://github.com/teng-lin/rookie-cookies"
+keywords = ["browser", "cookies", "cookie-extraction", "chrome", "firefox"]
+categories = ["authentication", "command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.4.6", features = ["derive"] }

@@ -12,13 +12,12 @@ name = "rookie-cookies"
 version.workspace = true
 edition = "2021"
 rust-version.workspace = true
-description = "Load cookie from your web browsers"
+description = "Cross-platform browser cookie extraction and decryption library"
 license-file = "../LICENSE.md"
-homepage = "https://crates.io/crates/rookie-cookies"
 documentation = "https://docs.rs/rookie-cookies/"
 repository = "https://github.com/teng-lin/rookie-cookies"
 readme = "README.md"
-keywords = ["windows", "cookies", "rust", "web"]
+keywords = ["browser", "cookies", "cookie-extraction", "chrome", "firefox"]
 categories = ["authentication", "os", "web-programming"]
 
 [lib]

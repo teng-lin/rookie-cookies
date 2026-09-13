@@ -1,6 +1,7 @@
 # rookie-cookies (Python)
 
-Extract cookies from local browsers on Linux, macOS, and Windows.
+Cross-platform browser cookie extraction and decryption for Python on Linux,
+macOS, and Windows.
 
 This file is the **Python guide** (PyPI landing page and repo tutorial). Rust
 stays in [`rookie-rs/README.md`](https://github.com/teng-lin/rookie-cookies/blob/main/rookie-rs/README.md).

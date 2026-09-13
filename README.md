@@ -1,21 +1,39 @@
-# rookie-cookies
+# rookie-cookies — cross-platform browser cookie extraction
 
 [![PyPI](https://img.shields.io/pypi/v/rookie-cookies?logo=python)](https://pypi.org/project/rookie-cookies/)
 [![npm](https://img.shields.io/npm/v/rookie-cookies?logo=npm&color=0076CE)](https://www.npmjs.com/package/rookie-cookies/)
 [![crates.io](https://img.shields.io/crates/v/rookie-cookies?logo=rust)](https://crates.io/crates/rookie-cookies/)
+[![CI](https://github.com/teng-lin/rookie-cookies/actions/workflows/test-rust.yml/badge.svg)](https://github.com/teng-lin/rookie-cookies/actions/workflows/test-rust.yml)
 [![License](https://img.shields.io/github/license/teng-lin/rookie-cookies?logo=license)](LICENSE.md)
 
-`rookie-cookies` is a well-tested cookie-extraction library for developers who
-work across Python, JavaScript, and Rust. A single Rust core — exercised by
-34 real-browser CI combinations across Linux/macOS/Windows, spanning Chrome,
-Firefox, Edge, Brave, Opera, Opera GX, Vivaldi, Yandex, LibreWolf, Zen, and
-Safari, including a live Windows App-Bound v20 canary against Chrome, Edge,
-and Brave, see [Testing rigor](#how-rookie-cookies-compares) — backs native
-Python and Node bindings and a CLI, so every language shares the same tested
-decryption logic, including support for the latest Chrome v20 App-Bound
-Encryption (ABE). See [How rookie-cookies
-compares](#how-rookie-cookies-compares) for how that holds up against the
-rest of the ecosystem.
+`rookie-cookies` provides cross-platform browser cookie extraction and
+decryption for 25 local browsers on Linux, macOS, and Windows. It covers Chrome
+cookie extraction — including Chrome App-Bound Encryption (ABE) `v20` and
+`IElevator2` — plus Edge, Brave, Chromium, Firefox cookie extraction, Safari
+cookie extraction, and 19 more browsers.
+
+A single native Rust core powers Rust, Python, Node.js, and CLI APIs. It is
+exercised by 34 real-browser CI combinations, including a live Windows
+App-Bound `v20` canary against Chrome, Edge, and Brave, so every language shares
+the same tested decryption logic. See [How rookie-cookies
+compares](#how-rookie-cookies-compares) for how that holds up against the rest
+of the ecosystem.
+
+## Install
+
+| Language | Requirement | Command |
+| --- | --- | --- |
+| Python | CPython ≥ 3.11 | `pip install rookie-cookies` |
+| Node.js | Node ≥ 22 | `npm install rookie-cookies` |
+| Rust | Rust ≥ 1.88, edition 2021 | `cargo add rookie-cookies` |
+| CLI | same repo / release binaries | `rookie-cookies --help` |
+
+**Windows App-Bound security note:** the recommended job APIs default to
+unprivileged reflective COM injection into a spawned browser process when they
+encounter `v20` cookies. Endpoint security products can flag that behavior.
+Set `AppBoundPolicy::Disabled` in Rust, `app_bound="disabled"` in Python,
+`appBound: "disabled"` in Node, or `--app-bound disabled` in the CLI to opt
+out; App-Bound rows will then be omitted and reported as unavailable.
 
 This project started as a maintained fork of
 [`thewh1teagle/rookie`](https://github.com/thewh1teagle/rookie), which is
@@ -156,22 +174,6 @@ Linux Chromium is `v10` + `v11` (libsecret / KWallet). Most macOS Chromium
 registrations declare Keychain-backed `v10`; macOS Cốc Cốc declares no
 encrypted tier and can emit only plaintext rows. Gecko uses the same
 sqlite/session layout on all three OSes.
-
-## Install
-
-| Language | Requirement | Command |
-| --- | --- | --- |
-| Python | CPython ≥ 3.11 | `pip install rookie-cookies` |
-| Node.js | Node ≥ 22 | `npm install rookie-cookies` |
-| Rust | Rust ≥ 1.88, edition 2021 | `cargo add rookie-cookies` |
-| CLI | same repo / release binaries | `rookie-cookies --help` |
-
-**Windows App-Bound security note:** the recommended job APIs default to
-unprivileged reflective COM injection into a spawned browser process when they
-encounter `v20` cookies. Endpoint security products can flag that behavior.
-Set `AppBoundPolicy::Disabled` in Rust, `app_bound="disabled"` in Python,
-`appBound: "disabled"` in Node, or `--app-bound disabled` in the CLI to opt
-out; App-Bound rows will then be omitted and reported as unavailable.
 
 ## Recommended usage (0.6 series)
 

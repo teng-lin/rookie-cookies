@@ -1,6 +1,7 @@
 # rookie-cookies (Node.js)
 
-Extract cookies from local browsers on Linux, macOS, and Windows.
+Cross-platform browser cookie extraction and decryption for Node.js on Linux,
+macOS, and Windows.
 
 This file is the **JavaScript guide** (npm landing page and repo tutorial).
 Rust stays in [`rookie-rs/README.md`](https://github.com/teng-lin/rookie-cookies/blob/main/rookie-rs/README.md).
