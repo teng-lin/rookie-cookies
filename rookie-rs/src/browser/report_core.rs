@@ -53,47 +53,36 @@ fn lexical_string_schema(
   pattern: &'static str,
   min_length: u32,
   max_length: Option<u32>,
-) -> schemars::schema::Schema {
-  schemars::schema::SchemaObject {
-    instance_type: Some(schemars::schema::InstanceType::String.into()),
-    string: Some(Box::new(schemars::schema::StringValidation {
-      max_length,
-      min_length: Some(min_length),
-      pattern: Some(pattern.to_owned()),
-    })),
-    ..Default::default()
+) -> schemars::Schema {
+  let mut schema = schemars::json_schema!({
+    "type": "string",
+    "minLength": min_length,
+    "pattern": pattern,
+  });
+  if let Some(max_length) = max_length {
+    schema.insert("maxLength".to_owned(), max_length.into());
   }
-  .into()
-}
-
-#[cfg(feature = "dto-schema")]
-fn open_identifier_schema() -> schemars::schema::Schema {
-  let mut schema = lexical_string_schema("^[a-z]", 1, None);
-  let schemars::schema::Schema::Object(object) = &mut schema else {
-    unreachable!("lexical string schemas are always schema objects")
-  };
-  object.subschemas = Some(Box::new(schemars::schema::SubschemaValidation {
-    // Draft-07 treats `$` as a soft end anchor that may match before a final
-    // line terminator. Rejecting every byte outside the vocabulary avoids
-    // that interoperability trap while keeping the vocabulary open.
-    not: Some(Box::new(
-      schemars::schema::SchemaObject {
-        instance_type: Some(schemars::schema::InstanceType::String.into()),
-        string: Some(Box::new(schemars::schema::StringValidation {
-          pattern: Some("[^a-z0-9_]".to_owned()),
-          ..Default::default()
-        })),
-        ..Default::default()
-      }
-      .into(),
-    )),
-    ..Default::default()
-  }));
   schema
 }
 
 #[cfg(feature = "dto-schema")]
-fn opaque_identifier_schema() -> schemars::schema::Schema {
+fn open_identifier_schema() -> schemars::Schema {
+  let mut schema = lexical_string_schema("^[a-z]", 1, None);
+  // Draft-07 treats `$` as a soft end anchor that may match before a final
+  // line terminator. Rejecting every byte outside the vocabulary avoids
+  // that interoperability trap while keeping the vocabulary open.
+  schema.insert(
+    "not".to_owned(),
+    serde_json::json!({
+      "type": "string",
+      "pattern": "[^a-z0-9_]",
+    }),
+  );
+  schema
+}
+
+#[cfg(feature = "dto-schema")]
+fn opaque_identifier_schema() -> schemars::Schema {
   lexical_string_schema("^[0-9a-f]{64}$", 64, Some(64))
 }
 
@@ -164,19 +153,19 @@ macro_rules! string_identifier {
 
     #[cfg(feature = "dto-schema")]
     impl schemars::JsonSchema for $name {
-      fn is_referenceable() -> bool {
-        false
+      fn inline_schema() -> bool {
+        true
       }
 
-      fn schema_name() -> String {
-        stringify!($name).to_owned()
+      fn schema_name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(stringify!($name))
       }
 
       fn schema_id() -> std::borrow::Cow<'static, str> {
         std::borrow::Cow::Borrowed(concat!(module_path!(), "::", stringify!($name)))
       }
 
-      fn json_schema(_: &mut schemars::r#gen::SchemaGenerator) -> schemars::schema::Schema {
+      fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
         $schema()
       }
     }
@@ -882,41 +871,40 @@ mod tests {
 
   #[cfg(feature = "dto-schema")]
   fn generated_schema_accepts<T: schemars::JsonSchema>(value: &str) -> bool {
-    let mut generator = schemars::r#gen::SchemaSettings::draft07().into_generator();
+    let mut generator = schemars::generate::SchemaSettings::draft07().into_generator();
     let schema = T::json_schema(&mut generator);
-    let schemars::schema::Schema::Object(schema) = schema else {
+    let Some(schema) = schema.as_object() else {
       return false;
     };
-    let Some(validation) = schema.string else {
-      return false;
-    };
-    let length = value.chars().count() as u32;
-    if validation
-      .min_length
+    let length = value.chars().count() as u64;
+    if schema
+      .get("minLength")
+      .and_then(serde_json::Value::as_u64)
       .is_some_and(|minimum| length < minimum)
-      || validation
-        .max_length
+      || schema
+        .get("maxLength")
+        .and_then(serde_json::Value::as_u64)
         .is_some_and(|maximum| length > maximum)
     {
       return false;
     }
-    let matches_string = validation.pattern.as_ref().is_none_or(|pattern| {
-      regex::Regex::new(pattern)
-        .expect("generated identifier pattern is valid")
-        .is_match(value)
-    });
+    let matches_string = schema
+      .get("pattern")
+      .and_then(serde_json::Value::as_str)
+      .is_none_or(|pattern| {
+        regex::Regex::new(pattern)
+          .expect("generated identifier pattern is valid")
+          .is_match(value)
+      });
     let excluded = schema
-      .subschemas
-      .and_then(|subschemas| subschemas.not)
+      .get("not")
+      .and_then(serde_json::Value::as_object)
       .is_some_and(|not_schema| {
-        let schemars::schema::Schema::Object(not_schema) = *not_schema else {
-          return false;
-        };
         not_schema
-          .string
-          .and_then(|validation| validation.pattern)
+          .get("pattern")
+          .and_then(serde_json::Value::as_str)
           .is_some_and(|pattern| {
-            regex::Regex::new(&pattern)
+            regex::Regex::new(pattern)
               .expect("generated exclusion pattern is valid")
               .is_match(value)
           })
