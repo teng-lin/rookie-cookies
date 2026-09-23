@@ -78,6 +78,7 @@ def full_read_options() -> None:
 
 
 def domain_filtered_extraction() -> None:
+    """Type-check the filtered list and every supported extraction option."""
     assert_type(rookie_cookies.extract(browser="chrome"), List[Dict[str, Any]])
     assert_type(
         rookie_cookies.extract(

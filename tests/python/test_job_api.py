@@ -38,6 +38,7 @@ _COOKIE_KEYS = {
 
 class ExtractJobTest(unittest.TestCase):
     def test_domain_filtering_and_named_helper_parity(self) -> None:
+        """Match legacy domain boundaries and literal filters on both profile routes."""
         with _synthetic_home() as home:
             root = _seed_chrome(home)
             with closing(sqlite3.connect(root / "Default" / "Network" / "Cookies")) as db:
@@ -101,6 +102,7 @@ class ExtractJobTest(unittest.TestCase):
                             self.assertEqual(set(row), _COOKIE_KEYS)
 
     def test_filter_preserves_profile_selection(self) -> None:
+        """Keep a domain filter scoped to the profile selected by name, ID, or path."""
         with _synthetic_home() as home:
             _seed_chrome(home)
             profile = next(
@@ -116,6 +118,7 @@ class ExtractJobTest(unittest.TestCase):
                     self.assertEqual([row["value"] for row in rows], ["profile-value"])
 
     def test_gecko_session_filter_is_independent_of_profile_selection(self) -> None:
+        """Filter optional Gecko session cookies with or without a profile query."""
         with _synthetic_home() as home:
             seed_browser(home, "firefox")
             root, _, _ = preferred_root(
@@ -175,6 +178,7 @@ class ExtractJobTest(unittest.TestCase):
                         )
 
     def test_extract_retains_expired_cookies_and_read_stays_unfiltered(self) -> None:
+        """Retain expired flat records without adding domain filtering to snapshots."""
         with _synthetic_home() as home:
             root = _seed_chrome(home, profiles=("Default",))
             with closing(sqlite3.connect(root / "Default" / "Network" / "Cookies")) as db:
@@ -191,6 +195,7 @@ class ExtractJobTest(unittest.TestCase):
                 rookie_cookies.read(browser="chrome", domains=["other.test"])
 
     def test_request_validation_and_stopped_errors(self) -> None:
+        """Reject invalid extraction options and preserve structured stop reasons."""
         with self.assertRaises(TypeError):
             rookie_cookies.extract()
         with self.assertRaises(TypeError):

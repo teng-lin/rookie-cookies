@@ -621,6 +621,7 @@ def _read_success(home: Path) -> object:
 
 
 def _extract_success(home: Path) -> object:
+    """Exercise the exported extraction job against a matching synthetic cookie."""
     seed_browser(home, "chrome")
     return rookie_cookies.extract(browser="chrome", domains=["example.test"])
 
