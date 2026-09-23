@@ -18,9 +18,10 @@ pip install rookie-cookies
 
 > **Windows App-Bound security note:** jobs default to unprivileged reflective
 > injection into a spawned browser process, which endpoint security can flag.
-> Pass `app_bound="disabled"` to `read`, `jar`, `extract`, `from_path`, or report jobs to
-> perform no App-Bound process work; `v20` rows will then be omitted with a
-> warning.
+> Pass `app_bound="disabled"` to `read`, `jar`, `extract`, `from_path`, or
+> report jobs to perform no App-Bound process work; `v20` rows will then be
+> omitted. `read` / `from_path` retain warning metadata and reports retain
+> diagnostics; `jar` and flat extraction jobs do not return warning metadata.
 
 ## Recommended usage (0.6 series)
 
@@ -90,6 +91,11 @@ the named helpers. It carries neither extraction warnings nor partition or
 container context. Use `read` for an isolation-aware snapshot and `report`
 for diagnostics. `read` and `from_path` continue to return unfiltered
 snapshots; for a domain-filtered explicit file, use `extract_from_path`.
+
+On Windows, `extract` defaults to `app_bound="injection_only"`, while named
+helpers such as `chrome()` retain elevated fallback. If your existing code
+relies on that fallback, pass `app_bound="allow_elevated_fallback"` explicitly
+when migrating.
 
 ## Isolation-aware cookies
 
@@ -317,8 +323,13 @@ rows = rookie_cookies.read(
 | Value | What it does |
 | --- | --- |
 | `"injection_only"` (default) | Unprivileged reflective COM injection into a spawned browser process (Chrome 127+). |
-| `"disabled"` | No injection, no spawned process, no process enumeration, no SYSTEM impersonation. v20 rows are skipped and counted as `decrypt_failed` warnings. |
-| `"allow_elevated_fallback"` | Injection, then permits elevated SYSTEM impersonation as a fallback (Chrome 133+). Never a default. |
+| `"disabled"` | No injection, no spawned process, no process enumeration, no SYSTEM impersonation. v20 rows are skipped. |
+| `"allow_elevated_fallback"` | Injection, then permits elevated SYSTEM impersonation as a fallback (Chrome 133+). Opt-in for job APIs; retained as the named helpers' compatibility default. |
+
+Skipped v20 rows appear as `decrypt_failed` warnings in `read` / `from_path`
+snapshots and as diagnostics in reports. `extract`, `extract_from_path`,
+`jar`, and named helpers return no warning metadata; use a snapshot or report
+when you need to inspect omissions.
 
 **`"injection_only"` is not free of consequence.** It spawns a browser process
 and reflectively injects into it, which endpoint security products can flag.

@@ -165,6 +165,8 @@ def extract(
     for diagnostics. ``include_session`` defaults to False independently of
     profile selection. Profile selectors and execution controls follow
     ``read``, including its default ``app_bound="injection_only"`` policy.
+    On Windows, callers relying on named helpers' elevated fallback should
+    explicitly pass ``app_bound="allow_elevated_fallback"`` when migrating.
 
     Raises RookieRequestError for invalid requests, RookieStoppedError for
     timeout/cancellation, and RookieEngineError for extraction failures.

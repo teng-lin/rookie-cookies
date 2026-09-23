@@ -349,7 +349,8 @@ fn system_time_from_epoch_seconds(seconds: f64) -> PyResult<std::time::SystemTim
 /// :param timeout: Optional extraction budget in seconds
 /// :param cancellation: Optional CancellationHandle
 /// :param app_bound: Windows App-Bound recovery policy; defaults to
-///     "injection_only", with the same values and behavior as read()
+///     "injection_only", with the same values and behavior as read(). Pass
+///     "allow_elevated_fallback" to retain named helpers' fallback behavior.
 /// :raises RookieRequestError: Invalid browser, profile, selection, or control
 /// :raises RookieStoppedError: Extraction timed out or was cancelled
 /// :raises RookieEngineError: Cookie extraction failed
