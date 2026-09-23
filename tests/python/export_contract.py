@@ -620,6 +620,12 @@ def _read_success(home: Path) -> object:
     return rookie_cookies.read(browser="chrome", include_expired=True)
 
 
+def _extract_success(home: Path) -> object:
+    """Exercise the exported extraction job against a matching synthetic cookie."""
+    seed_browser(home, "chrome")
+    return rookie_cookies.extract(browser="chrome", domains=["example.test"])
+
+
 def _jar_success(home: Path) -> object:
     seed_browser(home, "chrome")
     return rookie_cookies.jar(browser="chrome", include_expired=True)
@@ -647,6 +653,22 @@ UNKNOWN_BROWSER = "not-a-registered-browser"
 
 
 JOB_EXPORTS: tuple[Export, ...] = (
+    Export(
+        name="extract",
+        kind="function",
+        signature=(
+            "(*, browser, profile=None, domains=None, include_session=False, "
+            "select='legacy_first', timeout=None, cancellation=None, app_bound='injection_only')"
+        ),
+        success=_extract_success,
+        expect=expect_seeded_cookie,
+        failure=Failure(
+            probe=lambda home: rookie_cookies.extract(browser=UNKNOWN_BROWSER),
+            exception=rookie_cookies.RookieRequestError,
+            kind="request",
+            code="unknown_browser",
+        ),
+    ),
     Export(
         name="read",
         kind="function",

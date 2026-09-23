@@ -209,6 +209,11 @@ session_jar = cookies.jar(
     browser="firefox", profile="default-release", include_session=True
 )
 rows = cookies.read(browser="chrome", profile="Work").as_list()
+
+# Filter during extraction and return a list of cookie dictionaries.
+filtered_rows = cookies.extract(
+    browser="chrome", profile="Work", domains=["example.com"]
+)
 ```
 
 ### Node.js

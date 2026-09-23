@@ -140,6 +140,39 @@ MAX_ISSUE_SAMPLES: int
 many, so comparing the two tells a truncated excerpt from a complete one.
 """
 
+def extract(
+    *,
+    browser: str,
+    profile: Optional[str] = None,
+    domains: Optional[List[str]] = None,
+    include_session: bool = False,
+    select: SingleProfileSelection = "legacy_first",
+    timeout: Optional[float] = None,
+    cancellation: Optional[CancellationHandle] = None,
+    app_bound: AppBoundPolicy = "injection_only",
+) -> CookieList:
+    """Extract a domain-filtered flat cookie list from one browser profile.
+
+    Filtering happens in Rust during extraction, before dictionaries reach
+    Python. Domains match the exact host and its subdomains, ignoring case
+    and leading/trailing dots. ``None`` means all domains; ``[]`` means none.
+    Supply host names, not URLs or wildcard patterns; this is a storage
+    filter, not HTTP send-match.
+
+    Returns the frozen eight-field dictionaries, including expired cookies,
+    like the named helpers. Warnings and partition/container context are not
+    represented; use ``read`` for an isolation-aware snapshot or ``report``
+    for diagnostics. ``include_session`` defaults to False independently of
+    profile selection. Profile selectors and execution controls follow
+    ``read``, including its default ``app_bound="injection_only"`` policy.
+    On Windows, callers relying on named helpers' elevated fallback should
+    explicitly pass ``app_bound="allow_elevated_fallback"`` when migrating.
+
+    Raises RookieRequestError for invalid requests, RookieStoppedError for
+    timeout/cancellation, and RookieEngineError for extraction failures.
+    """
+    ...
+
 def extract_from_path(
     path: str,
     *,
@@ -691,6 +724,8 @@ def read(
 ) -> ReadResult:
     """
     Read an unfiltered snapshot of one browser profile.
+
+    For a domain-filtered flat list, use ``extract(browser=..., domains=...)``.
 
     **Windows App-Bound (v20):** ``app_bound`` defaults to
     ``"injection_only"``, which recovers a Chrome v20 profile without

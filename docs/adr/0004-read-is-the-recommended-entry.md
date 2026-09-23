@@ -35,6 +35,13 @@ Named store verbs (`chrome()`, `load()`, two-arg Rust `browser()`) remain the co
    The changelog records this ADR in the 0.6 prerelease history. It describes behavior that was never stable, so it is amended in place rather than superseded by a new ADR.
 8. Warnings are structured `ReadWarning { code, count }`. Codes are stable; `Display` / `message` text is diagnostic only (ADR 0001).
 9. `as_list()` / `__iter__` elements are the frozen eight-key cookie dict (`domain`, `path`, `secure`, `http_only`, `same_site`, `expires`, `name`, `value`). `same_site` stays the raw stored integer.
+10. Python also exposes `extract(browser=..., profile=..., domains=...)` for
+    callers migrating from domain-filtered named helpers. It delegates to
+    Rust's `ExtractRequest` / `extract` job and returns a flat eight-field
+    cookie list, retaining expired cookies. Filtering happens during
+    extraction; `None` means all domains and `[]` means none. This is a
+    separate job from the unfiltered `read` snapshot and carries neither
+    warnings nor isolation context.
 
 ## Consequences
 

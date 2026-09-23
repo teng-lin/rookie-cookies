@@ -1,12 +1,21 @@
-"""Job-layer `read` / `jar` / `from_path` / `profiles` / `report` bindings."""
+"""Job-layer `read` / `extract` / `jar` / `from_path` / `profiles` / `report` bindings."""
 
 from __future__ import annotations
 
 import http.cookiejar
+import json
+import sqlite3
 import unittest
+from contextlib import closing
 
 import rookie_cookies
 
+from export_contract import (
+    current_platform,
+    preferred_root,
+    registry_entries,
+    seed_browser,
+)
 from test_report_api import (
     _UNDECRYPTABLE,
     _chrome_root,
@@ -25,6 +34,215 @@ _COOKIE_KEYS = {
     "name",
     "value",
 }
+
+
+class ExtractJobTest(unittest.TestCase):
+    def test_domain_filtering_and_named_helper_parity(self) -> None:
+        """Match legacy domain boundaries and literal filters on both profile routes."""
+        with _synthetic_home() as home:
+            root = _seed_chrome(home)
+            with closing(sqlite3.connect(root / "Default" / "Network" / "Cookies")) as db:
+                db.executemany(
+                    "INSERT INTO cookies VALUES (?, '/', 0, 0, ?, 'value', X'', 0, 0)",
+                    [
+                        ("example.test", "exact"),
+                        (".sub.EXAMPLE.test", "subdomain"),
+                        ("notexample.test", "suffix-trap"),
+                        ("example.test.evil.test", "prefix-trap"),
+                        ("other.test", "other"),
+                        ("exa_mple.test", "literal-underscore"),
+                        ("exa%mple.test", "literal-percent"),
+                    ],
+                )
+                db.commit()
+            cases = [
+                (
+                    None,
+                    {
+                        "session",
+                        "exact",
+                        "subdomain",
+                        "suffix-trap",
+                        "prefix-trap",
+                        "other",
+                        "literal-underscore",
+                        "literal-percent",
+                    },
+                ),
+                ([], set()),
+                (["example.test"], {"session", "exact", "subdomain"}),
+                ([".EXAMPLE.TEST."], {"session", "exact", "subdomain"}),
+                (
+                    ["example.test", "other.test"],
+                    {"session", "exact", "subdomain", "other"},
+                ),
+                (["example.test", "example.test"], {"session", "exact", "subdomain"}),
+                (["missing.test"], set()),
+                (["exa_mple.test"], {"literal-underscore"}),
+                (["exa%mple.test"], {"literal-percent"}),
+                (["example.test' OR 1=1 --"], set()),
+            ]
+            for domains, expected in cases:
+                with self.subTest(domains=domains):
+                    legacy = rookie_cookies.chrome(domains=domains)
+                    for profile in (None, "Default"):
+                        rows = rookie_cookies.extract(
+                            browser="chrome",
+                            profile=profile,
+                            domains=domains,
+                            app_bound="disabled",
+                        )
+                        self.assertEqual({row["name"] for row in rows}, expected)
+                        self.assertEqual(len(rows), len(expected))
+                        self.assertEqual(
+                            sorted(rows, key=lambda row: row["name"]),
+                            sorted(legacy, key=lambda row: row["name"]),
+                        )
+                        for row in rows:
+                            self.assertEqual(set(row), _COOKIE_KEYS)
+
+    def test_filter_preserves_profile_selection(self) -> None:
+        """Keep a domain filter scoped to the profile selected by name, ID, or path."""
+        with _synthetic_home() as home:
+            _seed_chrome(home)
+            profile = next(
+                item
+                for item in rookie_cookies.profiles("chrome")
+                if item["profile"]["display_name"] == "Profile 1"
+            )["profile"]
+            for selector in ("Profile 1", profile["profile_id"], profile["path"]):
+                with self.subTest(selector=selector):
+                    rows = rookie_cookies.extract(
+                        browser="chrome", profile=selector, domains=["example.test"]
+                    )
+                    self.assertEqual([row["value"] for row in rows], ["profile-value"])
+
+    def test_gecko_session_filter_is_independent_of_profile_selection(self) -> None:
+        """Filter optional Gecko session cookies with or without a profile query."""
+        with _synthetic_home() as home:
+            seed_browser(home, "firefox")
+            root, _, _ = preferred_root(
+                registry_entries(current_platform())["firefox"], home
+            )
+            profile = root / "Profiles" / "contract-release"
+            (profile / "sessionstore.js").write_text(
+                json.dumps(
+                    {
+                        "windows": [
+                            {
+                                "cookies": [
+                                    {
+                                        "host": ".sub.example.test",
+                                        "path": "/",
+                                        "name": "session-match",
+                                        "value": "session-value",
+                                    },
+                                    {
+                                        "host": ".other.test",
+                                        "path": "/",
+                                        "name": "session-excluded",
+                                        "value": "excluded-value",
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            for selector in (None, "contract-release"):
+                for include_session in (False, True):
+                    with self.subTest(
+                        profile=selector, include_session=include_session
+                    ):
+                        rows = rookie_cookies.extract(
+                            browser="firefox",
+                            profile=selector,
+                            domains=["example.test"],
+                            include_session=include_session,
+                        )
+                        expected = (
+                            {"contract", "session-match"}
+                            if include_session
+                            else {"contract"}
+                        )
+                        self.assertEqual({row["name"] for row in rows}, expected)
+                        self.assertEqual(
+                            rookie_cookies.extract(
+                                browser="firefox",
+                                profile=selector,
+                                domains=[],
+                                include_session=include_session,
+                            ),
+                            [],
+                        )
+
+    def test_extract_retains_expired_cookies_and_read_stays_unfiltered(self) -> None:
+        """Retain expired flat records without adding domain filtering to snapshots."""
+        with _synthetic_home() as home:
+            root = _seed_chrome(home, profiles=("Default",))
+            with closing(sqlite3.connect(root / "Default" / "Network" / "Cookies")) as db:
+                db.execute(
+                    "INSERT INTO cookies VALUES "
+                    "('other.test', '/', 0, 11644473601000000, 'expired', 'value', X'', 0, 0)"
+                )
+                db.commit()
+            rows = rookie_cookies.extract(browser="chrome", domains=["other.test"])
+            self.assertEqual([row["name"] for row in rows], ["expired"])
+            snapshot = rookie_cookies.read(browser="chrome", include_expired=True)
+            self.assertEqual({row["name"] for row in snapshot}, {"session", "expired"})
+            with self.assertRaises(TypeError):
+                rookie_cookies.read(browser="chrome", domains=["other.test"])
+
+    def test_request_validation_and_stopped_errors(self) -> None:
+        """Reject invalid extraction options and preserve structured stop reasons."""
+        with self.assertRaises(TypeError):
+            rookie_cookies.extract()
+        with self.assertRaises(TypeError):
+            rookie_cookies.extract("chrome")
+        with _synthetic_home() as home:
+            _seed_chrome(home)
+            for domains in ("example.test", [123]):
+                with self.subTest(domains=domains), self.assertRaises(TypeError):
+                    rookie_cookies.extract(browser="chrome", domains=domains)
+            for options, code in (
+                ({"browser": "not-a-browser"}, "unknown_browser"),
+                ({"profile": "missing-profile"}, "unknown_profile"),
+                ({"select": "all"}, "conflicting_profile_selection"),
+                (
+                    {"profile": "Default", "select": "all"},
+                    "conflicting_profile_selection",
+                ),
+            ):
+                with self.subTest(options=options):
+                    with self.assertRaises(rookie_cookies.RookieRequestError) as caught:
+                        rookie_cookies.extract(
+                            **{"browser": "chrome", "domains": [], **options}
+                        )
+                    self.assertEqual(caught.exception.code, code)
+            for options in (
+                {"app_bound": "invalid"},
+                {"timeout": -1},
+                {"timeout": float("nan")},
+                {"timeout": float("inf")},
+            ):
+                with (
+                    self.subTest(options=options),
+                    self.assertRaises(rookie_cookies.RookieRequestError),
+                ):
+                    rookie_cookies.extract(browser="chrome", **options)
+            handle = rookie_cookies.CancellationHandle()
+            handle.cancel()
+            for options, reason in (
+                ({"timeout": 0}, "timed_out"),
+                ({"cancellation": handle}, "cancelled"),
+            ):
+                with self.subTest(options=options):
+                    with self.assertRaises(rookie_cookies.RookieStoppedError) as caught:
+                        rookie_cookies.extract(
+                            browser="chrome", domains=["example.test"], **options
+                        )
+                    self.assertEqual(caught.exception.stop_reason, reason)
 
 
 class JobApiTest(unittest.TestCase):
