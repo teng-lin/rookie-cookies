@@ -77,6 +77,23 @@ def full_read_options() -> None:
     )
 
 
+def domain_filtered_extraction() -> None:
+    assert_type(rookie_cookies.extract(browser="chrome"), List[Dict[str, Any]])
+    assert_type(
+        rookie_cookies.extract(
+            browser="firefox",
+            profile="default-release",
+            domains=["example.com"],
+            include_session=True,
+            select="legacy_first",
+            timeout=5.0,
+            cancellation=rookie_cookies.CancellationHandle(),
+            app_bound="disabled",
+        ),
+        List[Dict[str, Any]],
+    )
+
+
 def request_header_views() -> None:
     """`header` accepts a bare URL, a mapping, or keywords -- always -> str."""
     result = rookie_cookies.from_path("/nonexistent/Cookies")

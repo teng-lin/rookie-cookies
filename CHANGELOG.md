@@ -6,6 +6,15 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Python `extract(browser=..., profile=..., domains=...)` exposes the Rust
+  flat extraction job as a first-class alternative to domain-filtered named
+  helpers. Domains are filtered during extraction, before cookies reach
+  Python; `None` selects all domains and `[]` selects none. Profile and session
+  selection, timeout, cancellation, and App-Bound controls are supported.
+  `read` and `from_path` continue to return unfiltered snapshots.
+
 ### Fixed
 
 - Hosted claimed-browser cookie seeding no longer loses a run to a single

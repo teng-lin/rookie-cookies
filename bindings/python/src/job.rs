@@ -1,4 +1,4 @@
-//! Job-layer bindings: `read` / `from_path` / `ReadResult` / `ReadWarning`.
+//! Job-layer bindings: `read` / `extract` / `from_path` / `ReadResult` / `ReadWarning`.
 
 use crate::errors::request_error;
 use crate::{detailed_to_dict, to_dict, PyCancellationHandle};
@@ -327,7 +327,76 @@ fn system_time_from_epoch_seconds(seconds: f64) -> PyResult<std::time::SystemTim
   system_time.ok_or_else(|| request_error("header() now is out of range"))
 }
 
+/// Extract a domain-filtered flat cookie list from one browser profile.
+///
+/// Filters are passed to the Rust extraction job before Python dictionaries
+/// are created. Matching is case-insensitive and includes the exact domain
+/// and its subdomains, ignoring leading/trailing dots. `None` selects every
+/// domain; an empty list selects none. Domains are host names, not URLs or
+/// wildcard patterns. This is a storage filter, not HTTP send-match.
+///
+/// The result uses the same eight-field dictionaries as `read().as_list()`
+/// and retains expired cookies, like the named compatibility helpers. It
+/// does not carry warnings or partition/container context; use `read()` for
+/// an isolation-aware snapshot or `report()` for extraction diagnostics.
+///
+/// :param browser: Canonical browser ID or registered alias
+/// :param profile: Optional profile id, display name, directory, or path
+/// :param domains: Optional list of domains; None means all, [] means none
+/// :param include_session: Also acquire the browser's declared session store
+///     (Gecko only; default false), independently of profile selection
+/// :param select: Only "legacy_first" is valid; use report() for all profiles
+/// :param timeout: Optional extraction budget in seconds
+/// :param cancellation: Optional CancellationHandle
+/// :param app_bound: Windows App-Bound recovery policy; defaults to
+///     "injection_only", with the same values and behavior as read()
+/// :raises RookieRequestError: Invalid browser, profile, selection, or control
+/// :raises RookieStoppedError: Extraction timed out or was cancelled
+/// :raises RookieEngineError: Cookie extraction failed
+#[pyfunction]
+#[pyo3(signature = (
+  *,
+  browser,
+  profile=None,
+  domains=None,
+  include_session=false,
+  select="legacy_first",
+  timeout=None,
+  cancellation=None,
+  app_bound="injection_only",
+))]
+#[allow(clippy::too_many_arguments)]
+pub fn extract(
+  py: Python<'_>,
+  browser: String,
+  profile: Option<String>,
+  domains: Option<Vec<String>>,
+  include_session: bool,
+  select: &str,
+  timeout: Option<f64>,
+  cancellation: Option<PyCancellationHandle>,
+  app_bound: &str,
+) -> PyResult<Vec<Py<PyAny>>> {
+  let selection =
+    rookie_core::ProfileSelection::from_binding_options(profile.as_deref(), Some(select))
+      .map_err(|_| crate::conflicting_profile_selection_error())?;
+  let control = crate::execution_control(timeout, cancellation, app_bound)?;
+  let mut request = rookie_core::ExtractRequest::browser(browser)
+    .selection(selection)
+    .domains(domains)
+    .execution(control);
+  if include_session {
+    request = request.include_session();
+  }
+  let cookies = py
+    .detach(|| rookie_core::extract(request))
+    .map_err(crate::errors::classify_error)?;
+  to_dict(py, cookies)
+}
+
 /// Read an unfiltered snapshot of one browser profile.
+///
+/// For a domain-filtered flat list, use `extract(browser=..., domains=...)`.
 ///
 /// **Windows App-Bound (v20):** ``app_bound`` defaults to
 /// ``"injection_only"``, which recovers a Chrome v20 profile without

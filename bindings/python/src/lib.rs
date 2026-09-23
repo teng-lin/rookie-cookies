@@ -10,7 +10,7 @@ mod errors;
 mod job;
 mod report;
 use browsers::*;
-use job::{from_path, read, PyReadResult, PyReadWarning};
+use job::{extract, from_path, read, PyReadResult, PyReadWarning};
 use report::{
   browser_profiles, browser_report, chrome_profile, chrome_profiles, load_report,
   supported_browsers,
@@ -177,6 +177,7 @@ fn rookie_cookies(m: &Bound<'_, PyModule>) -> PyResult<()> {
   m.add_function(wrap_pyfunction!(browser_report, m)?)?;
   m.add_function(wrap_pyfunction!(load_report, m)?)?;
   m.add_function(wrap_pyfunction!(read, m)?)?;
+  m.add_function(wrap_pyfunction!(extract, m)?)?;
   m.add_function(wrap_pyfunction!(from_path, m)?)?;
   m.add_class::<PyReadResult>()?;
   m.add_class::<PyReadWarning>()?;

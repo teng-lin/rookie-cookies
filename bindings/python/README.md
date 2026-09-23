@@ -5,7 +5,7 @@ macOS, and Windows.
 
 This file is the **Python guide** (PyPI landing page and repo tutorial). Rust
 stays in [`rookie-rs/README.md`](https://github.com/teng-lin/rookie-cookies/blob/main/rookie-rs/README.md).
-The recommended 0.6 entry is `jar` / `read`
+The recommended 0.6 entry is `jar` / `read`, or `extract` for a domain-filtered list
 ([ADR 0004](https://github.com/teng-lin/rookie-cookies/blob/main/docs/adr/0004-read-is-the-recommended-entry.md)).
 Package metadata and `version()` identify the installed build.
 
@@ -18,7 +18,7 @@ pip install rookie-cookies
 
 > **Windows App-Bound security note:** jobs default to unprivileged reflective
 > injection into a spawned browser process, which endpoint security can flag.
-> Pass `app_bound="disabled"` to `read`, `jar`, `from_path`, or report jobs to
+> Pass `app_bound="disabled"` to `read`, `jar`, `extract`, `from_path`, or report jobs to
 > perform no App-Bound process work; `v20` rows will then be omitted with a
 > warning.
 
@@ -57,7 +57,39 @@ send-match. There is **no** module-level `header()` — call
 Named helpers (`chrome()`, `firefox()`, `load()`) still work. They are the
 compatibility bridge from
 [`thewh1teagle/rookie`](https://github.com/thewh1teagle/rookie) and will break
-in a later major version. Prefer `read` / `jar` for new code.
+in a later major version. Prefer `read` / `jar` for snapshots and `extract`
+for domain-filtered lists in new code.
+
+## Filtering by domain
+
+Use `extract` to filter during extraction and return a `list[dict]` directly:
+
+```python
+import rookie_cookies
+
+rows = rookie_cookies.extract(
+    browser="chrome",
+    profile="Default",
+    domains=["google.com"],
+)
+```
+
+This replaces `chrome(domains=["google.com"])` without passing the entire
+cookie store to Python. The filter is applied by the Rust extraction job.
+It matches `google.com` and subdomains such as `accounts.google.com`, but
+not `notgoogle.com` or `google.com.example.org`. Matching ignores case and
+leading/trailing dots. Multiple domains are combined as alternatives;
+`domains=None` selects every domain, while `domains=[]` selects none. Pass
+host names, not URLs or wildcard patterns. This is a storage filter, not
+HTTP send-match.
+
+`extract` accepts the same browser/profile selectors, `include_session`,
+`timeout`, `cancellation`, and `app_bound` controls as `read`. It returns the
+frozen eight-field cookie dictionaries and retains expired cookies, like
+the named helpers. It carries neither extraction warnings nor partition or
+container context. Use `read` for an isolation-aware snapshot and `report`
+for diagnostics. `read` and `from_path` continue to return unfiltered
+snapshots; for a domain-filtered explicit file, use `extract_from_path`.
 
 ## Isolation-aware cookies
 
@@ -124,12 +156,13 @@ unpartitioned/default-container cookies: omitting one raises
 
 ## Selecting profiles (`select`)
 
-`read` / `jar` take `select: Literal["legacy_first"] = "legacy_first"` — the
-only value they can express, since a snapshot has exactly one `profile_id`.
+`read` / `jar` / `extract` take
+`select: Literal["legacy_first"] = "legacy_first"` — these jobs select one
+profile, with `profile=` optionally identifying it explicitly.
 `browser_report` takes `select: Literal["legacy_first", "all"] = "all"`,
 matching what `browser_report(id, None, domains)` has always meant. Passing
 `profile=`/`profile_id=` together with `select="all"` (or passing
-`select="all"` to `read`/`jar` at all) is a request error with
+`select="all"` to `read`/`jar`/`extract` at all) is a request error with
 `code == "conflicting_profile_selection"`, raised before any I/O — naming one
 profile and asking for every profile contradict each other.
 
@@ -258,7 +291,7 @@ finally:
 
 ## Windows App-Bound (v20) recovery
 
-`read`, `jar`, `from_path`, `extract_from_path`, `report`, `browser_report`,
+`read`, `jar`, `extract`, `from_path`, `extract_from_path`, `report`, `browser_report`,
 and `load_report` all take an `app_bound` keyword. It defaults to
 `"injection_only"`, because Chrome has
 written App-Bound (v20) cookies on Windows since Chrome 127 — on a current
@@ -368,6 +401,7 @@ Wheels were `cp38-abi3` until the 0.6 break.
 | Area | 0.5.6 / early 0.5.x | 0.6.0 |
 | --- | --- | --- |
 | Recommended entry | `chrome()` / `to_cookiejar(...)` | `jar(browser=..., profile=...)` or `read(...).as_list()` |
+| Domain-filtered list | `chrome(domains=[...])` | `extract(browser="chrome", domains=[...])` |
 | Gecko session cookies | Not a first-class policy | Pass `include_session=True` to `read` / `jar`; `profile=` is optional and only selects which profile |
 | CPython | 3.8-era / `cp38-abi3` | **≥ 3.11**, `cp311-abi3` |
 | Path APIs | `firefox_based`, `chromium_based`, `any_browser` | `extract_from_path` (`cookies_from_path` / `chromium_cookies_from_path` are deprecated aliases onto it, kept until ≥ 0.7) |
