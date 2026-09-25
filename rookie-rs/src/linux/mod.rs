@@ -453,11 +453,17 @@ struct DbusKWalletBackend<'a> {
   runtime: BoundaryRuntime<'a>,
 }
 
-fn ensure_kwallet_return_code(operation: &str, code: i32) -> Result<()> {
-  if code == 0 {
-    Ok(())
-  } else {
-    bail!("KWallet {operation} failed with return code {code}")
+fn ensure_kwallet_non_forced_close(code: i32) -> Result<()> {
+  match code {
+    0 => Ok(()),
+    1 => {
+      // A non-forced close can leave the wallet open for other clients or
+      // desktop settings. KWallet also returns 1 for an unknown handle.
+      // Neither outcome warrants a cleanup warning or a forced close.
+      log::debug!("KWallet non-forced close returned 1; wallet was not closed");
+      Ok(())
+    }
+    _ => bail!("KWallet close failed with return code {code}"),
   }
 }
 
@@ -526,7 +532,7 @@ impl KWalletBackend for DbusKWalletBackend<'_> {
       .body()
       .deserialize()
       .context("KWallet close returned an invalid response")?;
-    ensure_kwallet_return_code("close", code)
+    ensure_kwallet_non_forced_close(code)
   }
 }
 
@@ -1188,10 +1194,17 @@ mod tests {
   }
 
   #[test]
-  fn kwallet_uses_zero_as_the_success_return_code() {
-    assert!(ensure_kwallet_return_code("close", 0).is_ok());
-    assert!(ensure_kwallet_return_code("close", 1).is_err());
-    assert!(ensure_kwallet_return_code("close", -1).is_err());
+  fn kwallet_non_forced_close_accepts_a_wallet_left_open() {
+    assert!(ensure_kwallet_non_forced_close(0).is_ok());
+    assert!(ensure_kwallet_non_forced_close(1).is_ok());
+    for code in [-1, 2] {
+      assert_eq!(
+        ensure_kwallet_non_forced_close(code)
+          .unwrap_err()
+          .to_string(),
+        format!("KWallet close failed with return code {code}")
+      );
+    }
   }
 
   #[test]
