@@ -348,6 +348,7 @@ function captureStressJar(context, expected) {
   });
 }
 
+/** Navigate the stress hosts and write a manifest after exact jar validation. */
 async function navigateAndCapture(
   context,
   page,
@@ -364,7 +365,12 @@ async function navigateAndCapture(
   }
 
   if (engine === "firefox" && captureMode === "mutate") {
-    await physicallyDeleteStressCookies(context, hosts, captureRound);
+    await physicallyDeleteStressCookies(
+      context,
+      hosts,
+      captureRound,
+      durationSetting(process.env.ROOKIE_E2E_STRESS_SETTLE_MS, 15000),
+    );
   }
 
   const expected = new Map();
