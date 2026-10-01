@@ -1902,7 +1902,7 @@ dependencies = [
  "cbc",
  "chacha20poly1305",
  "futures-lite",
- "getrandom 0.2.17",
+ "getrandom 0.4.3",
  "glob",
  "indoc",
  "libc",
