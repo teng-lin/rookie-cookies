@@ -16,6 +16,7 @@ import process from "node:process";
 import { chromium, firefox } from "playwright";
 
 import { processIdsForProfile } from "./active_writer_protocol.mjs";
+import { physicallyDeleteStressCookies } from "./stress_cookie_jar.mjs";
 
 const [
   engine,
@@ -360,6 +361,10 @@ async function navigateAndCapture(
         ? `https://${host}:${port}/stress/seed?count=40`
         : `https://${host}:${port}/stress/mutate?round=${captureRound}`;
     await page.goto(target, { waitUntil: "domcontentloaded", timeout });
+  }
+
+  if (engine === "firefox" && captureMode === "mutate") {
+    await physicallyDeleteStressCookies(context, hosts, captureRound);
   }
 
   const expected = new Map();
