@@ -16,6 +16,7 @@ import process from "node:process";
 import { chromium, firefox } from "playwright";
 
 import { processIdsForProfile } from "./active_writer_protocol.mjs";
+import { physicallyDeleteStressCookies } from "./stress_cookie_jar.mjs";
 
 const [
   engine,
@@ -347,6 +348,7 @@ function captureStressJar(context, expected) {
   });
 }
 
+/** Navigate the stress hosts and write a manifest after exact jar validation. */
 async function navigateAndCapture(
   context,
   page,
@@ -360,6 +362,15 @@ async function navigateAndCapture(
         ? `https://${host}:${port}/stress/seed?count=40`
         : `https://${host}:${port}/stress/mutate?round=${captureRound}`;
     await page.goto(target, { waitUntil: "domcontentloaded", timeout });
+  }
+
+  if (engine === "firefox" && captureMode === "mutate") {
+    await physicallyDeleteStressCookies(
+      context,
+      hosts,
+      captureRound,
+      durationSetting(process.env.ROOKIE_E2E_STRESS_SETTLE_MS, 15000),
+    );
   }
 
   const expected = new Map();
