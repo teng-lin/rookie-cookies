@@ -19,7 +19,11 @@ import {
   pathsReferToSameFile,
   verifyCookieRecords,
 } from "./cookie_manifest.mjs";
-import { assertCookieState, stateFromEnvironment } from "./cookie_state.mjs";
+import {
+  assertCookieState,
+  stateCookies,
+  stateFromEnvironment,
+} from "./cookie_state.mjs";
 
 const profileDir = process.env.ROOKIE_E2E_FIREFOX_PROFILE;
 if (!profileDir) {
@@ -117,7 +121,9 @@ if (manifestPath) {
     );
     process.exit(1);
   }
-  if (JSON.stringify(legacy) !== JSON.stringify(cookies)) {
+  if (
+    JSON.stringify(stateCookies(legacy)) !== JSON.stringify(stateCookies(cookies))
+  ) {
     console.error("legacy firefoxBased disagrees with cookiesFromPath");
     process.exit(1);
   }

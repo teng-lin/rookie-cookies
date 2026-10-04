@@ -43,6 +43,7 @@ test("ready/hold/mutate/probe/close protocol keeps an owned context live", async
     mkdirSync(profile);
     writeFileSync(database, "synthetic sqlite placeholder");
     const state = new Map();
+    const churnUrls = [];
     let closed = false;
     const page = {
       async goto(url) {
@@ -85,6 +86,9 @@ test("ready/hold/mutate/probe/close protocol keeps an owned context live", async
       async newPage() {
         return {
           ...page,
+          async goto(url) {
+            churnUrls.push(new URL(url));
+          },
           async close() {},
         };
       },
@@ -110,6 +114,10 @@ test("ready/hold/mutate/probe/close protocol keeps an owned context live", async
     assert.equal(closed, false);
     writeCommand(control, 1, "mutate");
     assert.equal((await waitFor(join(control, "ack-1.json"))).phase, "mutated");
+    assert.ok(churnUrls.length >= 2);
+    assert.equal(churnUrls[0].searchParams.get("engine"), "firefox");
+    assert.equal(churnUrls[0].searchParams.get("sequence"), "0");
+    assert.equal(churnUrls[1].searchParams.get("sequence"), "1");
     assert.equal(closed, false);
     writeCommand(control, 2, "probe");
     assert.equal((await waitFor(join(control, "ack-2.json"))).phase, "probed");
@@ -245,5 +253,54 @@ test("exact transition assertion rejects unrelated rows", () => {
     );
   } finally {
     delete process.env.ROOKIE_E2E_EXACT_COOKIE_STATE;
+  }
+});
+
+test("Firefox workload exclusion preserves the strict transition oracle", () => {
+  const stable = { name: "rookie_ci", value: "after" };
+  const workload = {
+    name: "rookie_writer_churn",
+    domain: "127.0.0.1",
+    path: "/active-writer/churn",
+    value: "42",
+  };
+  const check = (cookies, forbidden = []) =>
+    assertCookieState(cookies, { rookie_ci: "after" }, forbidden, "synthetic");
+  process.env.ROOKIE_E2E_EXACT_COOKIE_STATE = "1";
+  process.env.ROOKIE_E2E_FIREFOX_WRITER_CHURN = "1";
+  try {
+    for (const cookies of [[stable], [stable, workload]]) {
+      check(cookies, ["rookie_remove"]);
+    }
+    for (const unexpected of [
+      { ...workload, name: "unrelated" },
+      { ...workload, domain: "localhost" },
+      { ...workload, path: "/" },
+    ]) {
+      assert.throws(
+        () => check([stable, unexpected]),
+        /exact active-writer set/,
+      );
+    }
+    assert.throws(
+      () => check([workload]),
+      /expected exactly one/,
+    );
+    assert.throws(
+      () => check([stable, stable, workload]),
+      /expected exactly one/,
+    );
+    assert.throws(
+      () => check([stable, workload, { name: "rookie_remove" }], ["rookie_remove"]),
+      /forbidden\/deleted/,
+    );
+    delete process.env.ROOKIE_E2E_FIREFOX_WRITER_CHURN;
+    assert.throws(
+      () => check([stable, workload]),
+      /exact active-writer set/,
+    );
+  } finally {
+    delete process.env.ROOKIE_E2E_EXACT_COOKIE_STATE;
+    delete process.env.ROOKIE_E2E_FIREFOX_WRITER_CHURN;
   }
 });

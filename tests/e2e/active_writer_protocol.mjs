@@ -159,6 +159,7 @@ function ackPayload({
   };
 }
 
+/** Hold a browser-owned profile through baseline, concurrent writes, and close. */
 export async function runActiveWriterProtocol({
   context,
   page,
@@ -259,11 +260,13 @@ export async function runActiveWriterProtocol({
     const churnPage = await context.newPage();
     const churnUrl = new URL("/active-writer/churn", baselineUrl);
     churnUrl.searchParams.set("expiry", String(stableExpiry));
+    if (engine === "firefox") churnUrl.searchParams.set("engine", "firefox");
     let keepChurning = true;
     let churnRequests = 0;
     let churnError;
     const churnPromise = (async () => {
       while (keepChurning) {
+        churnUrl.searchParams.set("sequence", String(churnRequests));
         await churnPage.goto(churnUrl.href, { waitUntil: "commit" });
         churnRequests += 1;
         await delay(20);

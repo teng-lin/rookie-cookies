@@ -633,7 +633,8 @@ def install_zen_tarball() -> None:
     exe.chmod(exe.stat().st_mode | 0o111)
 
 
-def install_brew(cask: str) -> None:
+def install_brew(cask: str, exe: list[str] | None = None) -> None:
+    """Install a cask; refresh and retry once if failure leaves no executable."""
     env = os.environ.copy()
     env["HOMEBREW_NO_AUTO_UPDATE"] = "1"
     env["HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK"] = "1"
@@ -642,7 +643,15 @@ def install_brew(cask: str) -> None:
     print("+ brew install --cask", cask, flush=True)
     # Homebrew can exit 1 after a successful cask install because of tap-trust
     # warnings on GitHub-hosted macOS images.
-    subprocess.run(["brew", "install", "--cask", cask], env=env, check=False)
+    command = ["brew", "install", "--cask", cask]
+    completed = subprocess.run(command, env=env, check=False)
+    if completed.returncode != 0 and not (exe and find_exe(exe)):
+        # Hosted images can cache a cask version whose vendor has already
+        # removed the download (Vivaldi's stable-auto archives, for example).
+        # Refresh only after failure, then retry once. Keep the executable
+        # check in install_browser authoritative for tap-trust-only failures.
+        run(["brew", "update"], env=env)
+        subprocess.run(command, env=env, check=False)
 
 
 def install_winget(package_id: str) -> None:
@@ -779,6 +788,7 @@ Write-Host "Internet Explorer ready: $browser"
 
 
 def install_spec(spec: dict) -> None:
+    """Dispatch a catalog entry to its platform-specific installer."""
     kind = spec["kind"]
     if kind == "brave_apt":
         install_brave_apt()
@@ -793,7 +803,7 @@ def install_spec(spec: dict) -> None:
     elif kind == "zen_tarball":
         install_zen_tarball()
     elif kind == "brew":
-        install_brew(spec["cask"])
+        install_brew(spec["cask"], spec["exe"])
     elif kind == "winget":
         install_winget(spec["id"])
     elif kind in ("playwright_browser", "playwright_channel"):
