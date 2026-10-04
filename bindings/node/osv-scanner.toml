@@ -1,0 +1,6 @@
+# Scoped to the Node development lockfile; no published runtime dependencies
+# use braces. Remove when AVA's globby/micromatch chain has a patched release.
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2026-11-03
+reason = "Owner: maintainers. braces 3.0.3 has no published fix as of 2026-10-04. It is used only by AVA's development-only globby/micromatch test-file discovery, with repository-controlled glob patterns; cookie input never reaches this parser and npm production installs omit it. Recheck upstream and remove this exception within 30 days."

@@ -19,6 +19,15 @@ FORBIDDEN_ENV = "ROOKIE_E2E_FORBIDDEN_COOKIES_JSON"
 EXACT_ENV = "ROOKIE_E2E_EXACT_COOKIE_STATE"
 
 
+def is_firefox_writer_churn(cookie: Mapping[str, Any]) -> bool:
+    """Only the dedicated workload row lies outside the stable state oracle."""
+    return (
+        cookie.get("name") == "rookie_writer_churn"
+        and cookie.get("domain") == "127.0.0.1"
+        and cookie.get("path") == "/active-writer/churn"
+    )
+
+
 def state_from_environment(
     default_name: str, default_value: str
 ) -> tuple[dict[str, str], list[str]]:
@@ -54,6 +63,8 @@ def assert_cookie_state(
     *,
     surface: str,
 ) -> None:
+    if os.environ.get("ROOKIE_E2E_FIREFOX_WRITER_CHURN") == "1":
+        cookies = [cookie for cookie in cookies if not is_firefox_writer_churn(cookie)]
     for name, value in required.items():
         matches = [cookie for cookie in cookies if cookie.get("name") == name]
         if len(matches) != 1:

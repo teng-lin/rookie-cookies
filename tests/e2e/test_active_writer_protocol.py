@@ -343,6 +343,41 @@ class ActiveWriterProtocolTests(unittest.TestCase):
             with self.assertRaisesRegex(active.ActiveWriterError, "synthetic failure"):
                 active.wait_for_ack(control, 0, process, 0.1)
 
+    def test_firefox_workload_exclusion_keeps_the_transition_oracle_strict(self) -> None:
+        stable = {"name": "rookie_ci", "value": "after"}
+        workload = {
+            "name": "rookie_writer_churn",
+            "domain": "127.0.0.1",
+            "path": "/active-writer/churn",
+            "value": "42",
+        }
+        def check(cookies, forbidden=()):
+            assert_cookie_state(
+                cookies, {"rookie_ci": "after"}, forbidden, surface="test"
+            )
+
+        with mock.patch.dict(os.environ, {
+            "ROOKIE_E2E_EXACT_COOKIE_STATE": "1",
+            "ROOKIE_E2E_FIREFOX_WRITER_CHURN": "1",
+        }):
+            for cookies in ([stable], [stable, workload]):
+                check(cookies)
+            for unexpected in (
+                {**workload, "name": "unrelated"},
+                {**workload, "domain": "localhost"},
+                {**workload, "path": "/"},
+            ):
+                with self.assertRaisesRegex(AssertionError, "exact active-writer set"):
+                    check([stable, unexpected])
+            for cookies in ([workload], [stable, stable, workload]):
+                with self.assertRaisesRegex(AssertionError, "expected exactly one"):
+                    check(cookies)
+            with self.assertRaisesRegex(AssertionError, "forbidden/deleted"):
+                check([stable, workload, {"name": "rookie_remove"}], ["rookie_remove"])
+            os.environ.pop("ROOKIE_E2E_FIREFOX_WRITER_CHURN")
+            with self.assertRaisesRegex(AssertionError, "exact active-writer set"):
+                check([stable, workload])
+
     def test_seeder_commands_never_target_default_user_profiles(self) -> None:
         profile = Path("/workspace/scoped-profile")
         control = Path("/workspace/control")

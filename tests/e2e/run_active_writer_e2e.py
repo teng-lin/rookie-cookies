@@ -24,6 +24,7 @@ from typing import Any, Sequence
 from urllib.request import urlopen
 
 from cookie_manifest import ManifestError, normalize_detailed
+from cookie_state import is_firefox_writer_churn
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -449,6 +450,7 @@ def assertion_environment(
                 forbidden, separators=(",", ":")
             ),
             "ROOKIE_E2E_EXACT_COOKIE_STATE": "1",
+            "ROOKIE_E2E_FIREFOX_WRITER_CHURN": "1" if engine == "firefox" else "0",
             "ROOKIE_E2E_CHECK_BROWSER_DISCOVERY": "0",
         }
     )
@@ -639,6 +641,12 @@ def capture_detailed_surfaces(
                 normalize_detailed(record, label=f"{phase}-{surface}[{index}]")
                 for index, record in enumerate(decoded)
             ]
+            if environment.get("ROOKIE_E2E_FIREFOX_WRITER_CHURN") == "1":
+                normalized = [
+                    record
+                    for record in normalized
+                    if not is_firefox_writer_churn(record["cookie"])
+                ]
         except (json.JSONDecodeError, ManifestError, ValueError) as error:
             raise ActiveWriterError(
                 f"{phase} {surface} did not emit canonical detailed cookies: {error}"

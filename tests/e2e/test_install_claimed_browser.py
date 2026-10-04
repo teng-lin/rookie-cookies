@@ -133,6 +133,57 @@ class InstallCatalogTests(unittest.TestCase):
         self.assertEqual(command[command.index("--source") + 1], "winget")
         self.assertIn("--accept-source-agreements", command)
 
+    def test_brew_refreshes_stale_metadata_and_retries_once(self) -> None:
+        with mock.patch.object(
+            INSTALL.subprocess, "run",
+            side_effect=[
+                subprocess.CompletedProcess([], 1),
+                subprocess.CompletedProcess([], 0),
+                subprocess.CompletedProcess([], 1),
+            ],
+        ) as run:
+            INSTALL.install_brew("vivaldi")
+        self.assertEqual(
+            [call.args[0] for call in run.call_args_list],
+            [
+                ["brew", "install", "--cask", "vivaldi"],
+                ["brew", "update"],
+                ["brew", "install", "--cask", "vivaldi"],
+            ],
+        )
+
+    def test_brew_success_does_not_refresh_or_retry(self) -> None:
+        with mock.patch.object(
+            INSTALL.subprocess, "run",
+            return_value=subprocess.CompletedProcess([], 0),
+        ) as run:
+            INSTALL.install_brew("vivaldi")
+        self.assertEqual(run.call_count, 1)
+
+    def test_brew_warning_after_install_does_not_refresh_or_retry(self) -> None:
+        exe = ["/Applications/Vivaldi.app/Contents/MacOS/Vivaldi"]
+        with (
+            mock.patch.object(
+                INSTALL.subprocess, "run",
+                return_value=subprocess.CompletedProcess([], 1),
+            ) as run,
+            mock.patch.object(INSTALL, "find_exe", return_value=exe[0]),
+        ):
+            INSTALL.install_brew("vivaldi", exe)
+        self.assertEqual(run.call_count, 1)
+
+    def test_brew_refresh_failure_stops_the_retry(self) -> None:
+        with mock.patch.object(
+            INSTALL.subprocess, "run",
+            side_effect=[
+                subprocess.CompletedProcess([], 1),
+                subprocess.CalledProcessError(1, ["brew", "update"]),
+            ],
+        ) as run:
+            with self.assertRaises(subprocess.CalledProcessError):
+                INSTALL.install_brew("vivaldi")
+        self.assertEqual(run.call_count, 2)
+
     def test_find_exe_resolves_globs_and_app_bundles(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

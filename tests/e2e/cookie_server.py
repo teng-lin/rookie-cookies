@@ -157,6 +157,15 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError:
                 return []
             fixed = f"Path=/; Expires={formatdate(expiry, usegmt=True)}; SameSite=Lax"
+            if query.get("engine") == ["firefox"]:
+                # Firefox persists a replacement as separate DELETE/INSERT
+                # commits. Churn a dedicated row, leaving the state-transition
+                # subjects stable for every coherent point-in-time read.
+                sequence = int(query.get("sequence", ["0"])[0])
+                return [
+                    f"rookie_writer_churn={sequence}; Path=/active-writer/churn; "
+                    f"Expires={formatdate(expiry, usegmt=True)}; SameSite=Lax"
+                ]
             return [
                 f"rookie_ci=after; {fixed}",
                 f"rookie_added=present; {fixed}",
