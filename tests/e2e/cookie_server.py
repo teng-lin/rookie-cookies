@@ -136,6 +136,7 @@ class Handler(BaseHTTPRequestHandler):
 
     @staticmethod
     def cookie_headers(path: str) -> list[str]:
+        """Emit synthetic cookies, keeping Firefox churn off transition subjects."""
         route = urlsplit(path).path
         attributes = "Path=/; Max-Age=3600; SameSite=Lax"
         if route == "/active-writer/baseline":

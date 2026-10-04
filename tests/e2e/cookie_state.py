@@ -63,6 +63,7 @@ def assert_cookie_state(
     *,
     surface: str,
 ) -> None:
+    """Check stable rows exactly, excluding only enabled Firefox workload rows."""
     if os.environ.get("ROOKIE_E2E_FIREFOX_WRITER_CHURN") == "1":
         cookies = [cookie for cookie in cookies if not is_firefox_writer_churn(cookie)]
     for name, value in required.items():

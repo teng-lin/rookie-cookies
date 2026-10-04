@@ -195,6 +195,7 @@ class CookieServerTests(unittest.TestCase):
         self.assertIn("rookie_added=present", headers[1])
 
     def test_firefox_churn_leaves_the_transition_subjects_untouched(self) -> None:
+        """Firefox churn writes only the dedicated cookie with its own path."""
         headers = SERVER.Handler.cookie_headers(
             "/active-writer/churn?expiry=4102444800&engine=firefox&sequence=42"
         )

@@ -1,5 +1,6 @@
 import process from "node:process";
 
+/** Keep stable rows while excluding only the enabled Firefox workload identity. */
 export function stateCookies(cookies) {
   if (process.env.ROOKIE_E2E_FIREFOX_WRITER_CHURN !== "1") return cookies;
   // Firefox can commit the workload cookie's DELETE before its INSERT.
@@ -49,6 +50,7 @@ export function stateFromEnvironment(defaultName, defaultValue) {
   return { required, forbidden };
 }
 
+/** Require exact stable values and absence of every explicitly deleted cookie. */
 export function assertCookieState(cookies, required, forbidden, surface) {
   cookies = stateCookies(cookies);
   for (const [name, value] of Object.entries(required)) {

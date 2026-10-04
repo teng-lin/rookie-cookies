@@ -344,6 +344,7 @@ class ActiveWriterProtocolTests(unittest.TestCase):
                 active.wait_for_ack(control, 0, process, 0.1)
 
     def test_firefox_workload_exclusion_keeps_the_transition_oracle_strict(self) -> None:
+        """Excluding the workload must still reject missing and unexpected rows."""
         stable = {"name": "rookie_ci", "value": "after"}
         workload = {
             "name": "rookie_writer_churn",
@@ -352,6 +353,7 @@ class ActiveWriterProtocolTests(unittest.TestCase):
             "value": "42",
         }
         def check(cookies, forbidden=()):
+            """Apply the same single-cookie contract to every candidate snapshot."""
             assert_cookie_state(
                 cookies, {"rookie_ci": "after"}, forbidden, surface="test"
             )

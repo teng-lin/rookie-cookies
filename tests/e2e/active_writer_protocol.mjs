@@ -159,6 +159,7 @@ function ackPayload({
   };
 }
 
+/** Hold a browser-owned profile through baseline, concurrent writes, and close. */
 export async function runActiveWriterProtocol({
   context,
   page,

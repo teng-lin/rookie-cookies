@@ -134,6 +134,7 @@ class InstallCatalogTests(unittest.TestCase):
         self.assertIn("--accept-source-agreements", command)
 
     def test_brew_refreshes_stale_metadata_and_retries_once(self) -> None:
+        """A stale cask triggers one refresh and at most one installation retry."""
         with mock.patch.object(
             INSTALL.subprocess, "run",
             side_effect=[
@@ -153,6 +154,7 @@ class InstallCatalogTests(unittest.TestCase):
         )
 
     def test_brew_success_does_not_refresh_or_retry(self) -> None:
+        """A successful installation needs no metadata refresh or second attempt."""
         with mock.patch.object(
             INSTALL.subprocess, "run",
             return_value=subprocess.CompletedProcess([], 0),
@@ -161,6 +163,7 @@ class InstallCatalogTests(unittest.TestCase):
         self.assertEqual(run.call_count, 1)
 
     def test_brew_warning_after_install_does_not_refresh_or_retry(self) -> None:
+        """An installed executable takes precedence over Homebrew's warning exit."""
         exe = ["/Applications/Vivaldi.app/Contents/MacOS/Vivaldi"]
         with (
             mock.patch.object(
@@ -173,6 +176,7 @@ class InstallCatalogTests(unittest.TestCase):
         self.assertEqual(run.call_count, 1)
 
     def test_brew_refresh_failure_stops_the_retry(self) -> None:
+        """Propagate refresh failures instead of retrying with stale metadata."""
         with mock.patch.object(
             INSTALL.subprocess, "run",
             side_effect=[

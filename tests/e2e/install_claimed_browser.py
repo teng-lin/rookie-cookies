@@ -634,6 +634,7 @@ def install_zen_tarball() -> None:
 
 
 def install_brew(cask: str, exe: list[str] | None = None) -> None:
+    """Install a cask; refresh and retry once if failure leaves no executable."""
     env = os.environ.copy()
     env["HOMEBREW_NO_AUTO_UPDATE"] = "1"
     env["HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK"] = "1"
@@ -787,6 +788,7 @@ Write-Host "Internet Explorer ready: $browser"
 
 
 def install_spec(spec: dict) -> None:
+    """Dispatch a catalog entry to its platform-specific installer."""
     kind = spec["kind"]
     if kind == "brave_apt":
         install_brave_apt()

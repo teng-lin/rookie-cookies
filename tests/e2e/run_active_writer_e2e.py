@@ -437,6 +437,7 @@ def assertion_environment(
     required: dict[str, str],
     forbidden: list[str],
 ) -> dict[str, str]:
+    """Configure exact transition checks and engine-specific workload handling."""
     env = os.environ.copy()
     env.update(
         {
@@ -619,6 +620,7 @@ def capture_detailed_surfaces(
     environment: dict[str, str],
     phase: str,
 ) -> dict[str, list[dict[str, Any]]]:
+    """Compare canonical snapshots across APIs, excluding the enabled churn row."""
     snapshots: dict[str, list[dict[str, Any]]] = {}
     for surface, command in detailed_surface_commands(
         engine, profile, database, browser_id
