@@ -652,12 +652,21 @@ def cache_opera_brew_download(cask: str, env: dict[str, str]) -> None:
         or not re.fullmatch(r"[0-9a-f]{64}", expected)
     ):
         raise SystemExit(f"unexpected Opera cask download metadata for {cask}")
+    filename = url.rsplit("/", 1)[-1]
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+\.dmg", filename):
+        raise SystemExit(f"unexpected Opera cask download metadata for {cask}")
     mirror = "https://ftp.opera.com/pub/" + url[len(prefix):]
-    cache = Path(
+    cache_root = Path(
         subprocess.check_output(
-            ["brew", "--cache", "--cask", cask], env=env, text=True
+            ["brew", "--cache"], env=env, text=True
         ).strip()
     )
+    # A per-cask `brew --cache` can probe the failed origin to resolve its
+    # filename. Use the offline cache root and Homebrew's original-URL hash
+    # naming convention instead. The verified completed entry then lets
+    # Homebrew reuse the DMG without resolving the origin's filename.
+    url_hash = hashlib.sha256(url.encode()).hexdigest()
+    cache = cache_root / "downloads" / f"{url_hash}--{filename}"
     cache.parent.mkdir(parents=True, exist_ok=True)
     # Stage on the cache filesystem so a partial or mismatched download never
     # replaces the cached artifact and publishing the verified file is atomic.

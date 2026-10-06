@@ -239,22 +239,42 @@ class InstallCatalogTests(unittest.TestCase):
 
     def test_opera_mirror_caches_the_exact_refreshed_cask_artifact(self) -> None:
         payload = b"verified Opera DMG"
-        for cask, relative in (
-            ("opera", "opera/desktop/136.0.6008.80/mac/Opera_136.0.6008.80_Setup.dmg"),
-            ("opera-gx", "opera_gx/136.0.6008.76/mac/Opera_GX_136.0.6008.76_Setup.dmg"),
+        for cask, relative, url_hash in (
+            (
+                "opera", "opera/desktop/136.0.6008.80/mac/Opera_136.0.6008.80_Setup.dmg",
+                "36db6a859d8c0f3865d3921eea315d64ac879a55af3f43b95c0006e358a1a2b0",
+            ),
+            (
+                "opera-gx", "opera_gx/136.0.6008.76/mac/Opera_GX_136.0.6008.76_Setup.dmg",
+                "0cf0a0966f1e26709ba40afb3717fff8560cf9740cc9084e994db58c1636bd2c",
+            ),
         ):
             with self.subTest(cask=cask), tempfile.TemporaryDirectory() as tmp:
-                cache = Path(tmp) / "downloads" / "cached.dmg"
+                cache = Path(tmp) / "downloads" / f"{url_hash}--{relative.rsplit('/', 1)[-1]}"
+                cache.parent.mkdir()
+                incomplete = Path(str(cache) + ".incomplete")
+                incomplete.write_bytes(b"failed origin download")
                 metadata = {"casks": [{
                     "url": "https://get.geo.opera.com/pub/" + relative,
                     "sha256": hashlib.sha256(payload).hexdigest(),
                 }]}
                 env = {"HOMEBREW_NO_AUTO_UPDATE": "1"}
 
+                def brew_output(command, **kwargs):
+                    if command == ["brew", "info", "--json=v2", "--cask", cask]:
+                        return json.dumps(metadata)
+                    if command == ["brew", "--cache"]:
+                        return tmp + "\n"
+                    # A cask-specific cache lookup must never get a chance to
+                    # contact the broken origin before the mirror download.
+                    raise subprocess.CalledProcessError(
+                        6, command, stderr="Could not resolve host: get.geo.opera.com"
+                    )
+
                 with (
                     mock.patch.object(
                         INSTALL.subprocess, "check_output",
-                        side_effect=[json.dumps(metadata), str(cache) + "\n"],
+                        side_effect=brew_output,
                     ) as output,
                     mock.patch.object(
                         INSTALL.urllib.request, "urlopen", return_value=io.BytesIO(payload),
@@ -263,7 +283,8 @@ class InstallCatalogTests(unittest.TestCase):
                     INSTALL.cache_opera_brew_download(cask, env)
 
                 self.assertEqual(cache.read_bytes(), payload)
-                self.assertEqual(list(cache.parent.iterdir()), [cache])
+                self.assertEqual(set(cache.parent.iterdir()), {cache, incomplete})
+                self.assertEqual(incomplete.read_bytes(), b"failed origin download")
                 request.assert_called_once_with(
                     "https://ftp.opera.com/pub/" + relative, timeout=120
                 )
@@ -272,14 +293,17 @@ class InstallCatalogTests(unittest.TestCase):
                         ["brew", "info", "--json=v2", "--cask", cask], env=env, text=True
                     ),
                     mock.call(
-                        ["brew", "--cache", "--cask", cask], env=env, text=True
+                        ["brew", "--cache"], env=env, text=True
                     ),
                 ])
 
     def test_opera_mirror_failure_preserves_cache_and_clears_staging(self) -> None:
         for failure in ("download", "checksum"):
             with self.subTest(failure=failure), tempfile.TemporaryDirectory() as tmp:
-                cache = Path(tmp) / "cached.dmg"
+                cache = Path(tmp) / "downloads" / (
+                    "7850cd66f8ed5f585ae04d57804bf05e7ec59478acb55146712593acc121e5af--Opera.dmg"
+                )
+                cache.parent.mkdir()
                 cache.write_bytes(b"existing cache")
                 metadata = {"casks": [{
                     "url": "https://get.geo.opera.com/pub/opera/desktop/1/mac/Opera.dmg",
@@ -296,7 +320,7 @@ class InstallCatalogTests(unittest.TestCase):
                 with (
                     mock.patch.object(
                         INSTALL.subprocess, "check_output",
-                        side_effect=[json.dumps(metadata), str(cache)],
+                        side_effect=[json.dumps(metadata), tmp],
                     ),
                     mock.patch.object(
                         INSTALL.urllib.request, "urlopen", return_value=response,
@@ -313,6 +337,7 @@ class InstallCatalogTests(unittest.TestCase):
             ("https://get.geo.opera.com/pub/opera/Opera.dmg", "no_check"),
             ("https://get.geo.opera.com/pub/opera/Opera.dmg", None),
             (None, "0" * 64),
+            ("https://get.geo.opera.com/pub/opera/", "0" * 64),
         ):
             metadata = {"casks": [{"url": url, "sha256": checksum}]}
             with (
