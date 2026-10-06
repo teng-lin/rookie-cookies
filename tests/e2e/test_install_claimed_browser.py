@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import ast
 import glob
+import hashlib
 import importlib.util
 import inspect
 import io
+import json
 import stat
 import subprocess
 import tempfile
@@ -187,6 +189,145 @@ class InstallCatalogTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 INSTALL.install_brew("vivaldi")
         self.assertEqual(run.call_count, 2)
+
+    def test_opera_brew_uses_mirror_only_after_both_attempts_fail(self) -> None:
+        for cask in ("opera", "opera-gx"):
+            with (
+                self.subTest(cask=cask),
+                mock.patch.object(
+                    INSTALL.subprocess, "run",
+                    side_effect=[
+                        subprocess.CompletedProcess([], 1),
+                        subprocess.CompletedProcess([], 0),
+                        subprocess.CompletedProcess([], 1),
+                        subprocess.CompletedProcess([], 0),
+                    ],
+                ) as run,
+                mock.patch.object(INSTALL, "cache_opera_brew_download") as mirror,
+            ):
+                INSTALL.install_brew(cask)
+                self.assertEqual(
+                    [call.args[0] for call in run.call_args_list],
+                    [
+                        ["brew", "install", "--cask", cask],
+                        ["brew", "update"],
+                        ["brew", "install", "--cask", cask],
+                        ["brew", "install", "--cask", cask],
+                    ],
+                )
+                mirror.assert_called_once_with(cask, run.call_args.kwargs["env"])
+
+    def test_opera_brew_skips_mirror_when_an_attempt_installed_the_binary(self) -> None:
+        exe = ["/Applications/Opera.app/Contents/MacOS/Opera"]
+        for results, found in (
+            ([0], []),
+            ([1], [exe[0]]),
+            ([1, 0, 0], [None]),
+            ([1, 0, 1], [None, exe[0]]),
+        ):
+            with (
+                self.subTest(results=results),
+                mock.patch.object(
+                    INSTALL.subprocess, "run",
+                    side_effect=[subprocess.CompletedProcess([], rc) for rc in results],
+                ),
+                mock.patch.object(INSTALL, "find_exe", side_effect=found),
+                mock.patch.object(INSTALL, "cache_opera_brew_download") as mirror,
+            ):
+                INSTALL.install_brew("opera", exe)
+                mirror.assert_not_called()
+
+    def test_opera_mirror_caches_the_exact_refreshed_cask_artifact(self) -> None:
+        payload = b"verified Opera DMG"
+        for cask, relative in (
+            ("opera", "opera/desktop/136.0.6008.80/mac/Opera_136.0.6008.80_Setup.dmg"),
+            ("opera-gx", "opera_gx/136.0.6008.76/mac/Opera_GX_136.0.6008.76_Setup.dmg"),
+        ):
+            with self.subTest(cask=cask), tempfile.TemporaryDirectory() as tmp:
+                cache = Path(tmp) / "downloads" / "cached.dmg"
+                metadata = {"casks": [{
+                    "url": "https://get.geo.opera.com/pub/" + relative,
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                }]}
+                env = {"HOMEBREW_NO_AUTO_UPDATE": "1"}
+
+                def download(url, target):
+                    Path(target).write_bytes(payload)
+
+                with (
+                    mock.patch.object(
+                        INSTALL.subprocess, "check_output",
+                        side_effect=[json.dumps(metadata), str(cache) + "\n"],
+                    ) as output,
+                    mock.patch.object(
+                        INSTALL.urllib.request, "urlretrieve", side_effect=download,
+                    ) as retrieve,
+                ):
+                    INSTALL.cache_opera_brew_download(cask, env)
+
+                self.assertEqual(cache.read_bytes(), payload)
+                self.assertEqual(list(cache.parent.iterdir()), [cache])
+                self.assertEqual(
+                    retrieve.call_args.args[0], "https://ftp.opera.com/pub/" + relative
+                )
+                self.assertEqual(output.call_args_list, [
+                    mock.call(
+                        ["brew", "info", "--json=v2", "--cask", cask], env=env, text=True
+                    ),
+                    mock.call(
+                        ["brew", "--cache", "--cask", cask], env=env, text=True
+                    ),
+                ])
+
+    def test_opera_mirror_failure_preserves_cache_and_clears_staging(self) -> None:
+        for failure in ("download", "checksum"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as tmp:
+                cache = Path(tmp) / "cached.dmg"
+                cache.write_bytes(b"existing cache")
+                metadata = {"casks": [{
+                    "url": "https://get.geo.opera.com/pub/opera/desktop/1/mac/Opera.dmg",
+                    "sha256": "0" * 64,
+                }]}
+
+                def download(url, target):
+                    Path(target).write_bytes(b"partial or corrupt DMG")
+                    if failure == "download":
+                        raise OSError("download interrupted")
+
+                error = OSError if failure == "download" else SystemExit
+                with (
+                    mock.patch.object(
+                        INSTALL.subprocess, "check_output",
+                        side_effect=[json.dumps(metadata), str(cache)],
+                    ),
+                    mock.patch.object(
+                        INSTALL.urllib.request, "urlretrieve", side_effect=download,
+                    ),
+                    self.assertRaises(error),
+                ):
+                    INSTALL.cache_opera_brew_download("opera", {})
+                self.assertEqual(cache.read_bytes(), b"existing cache")
+                self.assertEqual(list(cache.parent.iterdir()), [cache])
+
+    def test_opera_mirror_rejects_unexpected_url_or_missing_checksum(self) -> None:
+        for url, checksum in (
+            ("https://example.com/Opera.dmg", "0" * 64),
+            ("https://get.geo.opera.com/pub/opera/Opera.dmg", "no_check"),
+            ("https://get.geo.opera.com/pub/opera/Opera.dmg", None),
+            (None, "0" * 64),
+        ):
+            metadata = {"casks": [{"url": url, "sha256": checksum}]}
+            with (
+                self.subTest(url=url, checksum=checksum),
+                mock.patch.object(
+                    INSTALL.subprocess, "check_output", return_value=json.dumps(metadata)
+                ) as output,
+                mock.patch.object(INSTALL.urllib.request, "urlretrieve") as retrieve,
+                self.assertRaisesRegex(SystemExit, "unexpected Opera cask"),
+            ):
+                INSTALL.cache_opera_brew_download("opera", {})
+            self.assertEqual(output.call_count, 1)
+            retrieve.assert_not_called()
 
     def test_find_exe_resolves_globs_and_app_bundles(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

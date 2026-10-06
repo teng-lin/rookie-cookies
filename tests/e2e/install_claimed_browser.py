@@ -633,8 +633,52 @@ def install_zen_tarball() -> None:
     exe.chmod(exe.stat().st_mode | 0o111)
 
 
+def cache_opera_brew_download(cask: str, env: dict[str, str]) -> None:
+    """Cache the same cask artifact from Opera's archive host after verification."""
+    metadata = json.loads(
+        subprocess.check_output(
+            ["brew", "info", "--json=v2", "--cask", cask], env=env, text=True
+        )
+    )["casks"][0]
+    # Both official casks use get.geo.opera.com, which can fail DNS on hosted
+    # macOS runners. Their livecheck uses ftp.opera.com for the same archives.
+    prefix = "https://get.geo.opera.com/pub/"
+    url = metadata.get("url")
+    expected = metadata.get("sha256")
+    if (
+        not isinstance(url, str)
+        or not url.startswith(prefix)
+        or not isinstance(expected, str)
+        or not re.fullmatch(r"[0-9a-f]{64}", expected)
+    ):
+        raise SystemExit(f"unexpected Opera cask download metadata for {cask}")
+    mirror = "https://ftp.opera.com/pub/" + url[len(prefix):]
+    cache = Path(
+        subprocess.check_output(
+            ["brew", "--cache", "--cask", cask], env=env, text=True
+        ).strip()
+    )
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    # Stage on the cache filesystem so a partial or mismatched download never
+    # replaces the cached artifact and publishing the verified file is atomic.
+    with tempfile.TemporaryDirectory(prefix="rookie-opera-", dir=cache.parent) as tmp:
+        archive = Path(tmp) / "browser.dmg"
+        print("+ download", mirror, flush=True)
+        urllib.request.urlretrieve(mirror, archive)
+        digest = hashlib.sha256()
+        with archive.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        actual = digest.hexdigest()
+        if actual != expected:
+            raise SystemExit(
+                f"Opera cask archive hash mismatch: expected {expected}, got {actual}"
+            )
+        archive.replace(cache)
+
+
 def install_brew(cask: str, exe: list[str] | None = None) -> None:
-    """Install a cask; refresh and retry once if failure leaves no executable."""
+    """Refresh failed installs once; Opera can also use its official mirror."""
     env = os.environ.copy()
     env["HOMEBREW_NO_AUTO_UPDATE"] = "1"
     env["HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK"] = "1"
@@ -651,7 +695,17 @@ def install_brew(cask: str, exe: list[str] | None = None) -> None:
         # Refresh only after failure, then retry once. Keep the executable
         # check in install_browser authoritative for tap-trust-only failures.
         run(["brew", "update"], env=env)
-        subprocess.run(command, env=env, check=False)
+        completed = subprocess.run(command, env=env, check=False)
+        if (
+            completed.returncode != 0
+            and cask in ("opera", "opera-gx")
+            and not (exe and find_exe(exe))
+        ):
+            cache_opera_brew_download(cask, env)
+            # Homebrew still owns installation and verifies the cached DMG
+            # against the refreshed cask checksum. Keep warning exits subject
+            # to the same executable-presence check as the other attempts.
+            subprocess.run(command, env=env, check=False)
 
 
 def install_winget(package_id: str) -> None:
