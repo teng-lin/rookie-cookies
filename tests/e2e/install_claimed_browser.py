@@ -664,10 +664,13 @@ def cache_opera_brew_download(cask: str, env: dict[str, str]) -> None:
     with tempfile.TemporaryDirectory(prefix="rookie-opera-", dir=cache.parent) as tmp:
         archive = Path(tmp) / "browser.dmg"
         print("+ download", mirror, flush=True)
-        urllib.request.urlretrieve(mirror, archive)
         digest = hashlib.sha256()
-        with archive.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+        with (
+            urllib.request.urlopen(mirror, timeout=120) as response,
+            archive.open("wb") as handle,
+        ):
+            for chunk in iter(lambda: response.read(1024 * 1024), b""):
+                handle.write(chunk)
                 digest.update(chunk)
         actual = digest.hexdigest()
         if actual != expected:

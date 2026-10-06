@@ -251,24 +251,21 @@ class InstallCatalogTests(unittest.TestCase):
                 }]}
                 env = {"HOMEBREW_NO_AUTO_UPDATE": "1"}
 
-                def download(url, target):
-                    Path(target).write_bytes(payload)
-
                 with (
                     mock.patch.object(
                         INSTALL.subprocess, "check_output",
                         side_effect=[json.dumps(metadata), str(cache) + "\n"],
                     ) as output,
                     mock.patch.object(
-                        INSTALL.urllib.request, "urlretrieve", side_effect=download,
-                    ) as retrieve,
+                        INSTALL.urllib.request, "urlopen", return_value=io.BytesIO(payload),
+                    ) as request,
                 ):
                     INSTALL.cache_opera_brew_download(cask, env)
 
                 self.assertEqual(cache.read_bytes(), payload)
                 self.assertEqual(list(cache.parent.iterdir()), [cache])
-                self.assertEqual(
-                    retrieve.call_args.args[0], "https://ftp.opera.com/pub/" + relative
+                request.assert_called_once_with(
+                    "https://ftp.opera.com/pub/" + relative, timeout=120
                 )
                 self.assertEqual(output.call_args_list, [
                     mock.call(
@@ -289,10 +286,11 @@ class InstallCatalogTests(unittest.TestCase):
                     "sha256": "0" * 64,
                 }]}
 
-                def download(url, target):
-                    Path(target).write_bytes(b"partial or corrupt DMG")
-                    if failure == "download":
-                        raise OSError("download interrupted")
+                response = io.BytesIO(b"partial or corrupt DMG")
+                if failure == "download":
+                    response.read = mock.Mock(
+                        side_effect=[b"partial DMG", TimeoutError("download interrupted")]
+                    )
 
                 error = OSError if failure == "download" else SystemExit
                 with (
@@ -301,7 +299,7 @@ class InstallCatalogTests(unittest.TestCase):
                         side_effect=[json.dumps(metadata), str(cache)],
                     ),
                     mock.patch.object(
-                        INSTALL.urllib.request, "urlretrieve", side_effect=download,
+                        INSTALL.urllib.request, "urlopen", return_value=response,
                     ),
                     self.assertRaises(error),
                 ):
@@ -322,12 +320,12 @@ class InstallCatalogTests(unittest.TestCase):
                 mock.patch.object(
                     INSTALL.subprocess, "check_output", return_value=json.dumps(metadata)
                 ) as output,
-                mock.patch.object(INSTALL.urllib.request, "urlretrieve") as retrieve,
+                mock.patch.object(INSTALL.urllib.request, "urlopen") as request,
                 self.assertRaisesRegex(SystemExit, "unexpected Opera cask"),
             ):
                 INSTALL.cache_opera_brew_download("opera", {})
             self.assertEqual(output.call_count, 1)
-            retrieve.assert_not_called()
+            request.assert_not_called()
 
     def test_find_exe_resolves_globs_and_app_bundles(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
