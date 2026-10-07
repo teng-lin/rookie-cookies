@@ -10,6 +10,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    ignore:
+      # AES 0.9.3 requires Rust 1.89; the workspace supports Rust 1.88.
+      - dependency-name: aes
+        versions: ["0.9.3"]
   - package-ecosystem: npm
     directory: /bindings/node
     schedule:
