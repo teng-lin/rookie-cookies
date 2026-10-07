@@ -1,4 +1,5 @@
 use super::*;
+use crate::utils::tests::unique_tmpdir;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use lz4_flex::block::compress_prepend_size;
 use sha2::{Digest, Sha256};
@@ -26,17 +27,6 @@ impl Clock for TickClock {
   }
 
   fn sleep(&self, _duration: Duration) {}
-}
-
-// Per-process unique temp paths without pulling in the `tempfile` dep.
-// Each test gets its own subdirectory so they don't collide when run in
-// parallel under `cargo test`.
-fn unique_tmpdir(tag: &str) -> PathBuf {
-  static COUNTER: AtomicU64 = AtomicU64::new(0);
-  let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-  let dir = std::env::temp_dir().join(format!("rookie-test-{}-{}-{}", tag, std::process::id(), n));
-  std::fs::create_dir_all(&dir).expect("temp dir");
-  dir
 }
 
 #[test]
