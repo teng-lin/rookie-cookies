@@ -1,7 +1,7 @@
 import test from 'ava';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 
 const cwd = fileURLToPath(new URL('..', import.meta.url));
 
@@ -17,7 +17,7 @@ test('TAP failures include YAML diagnostics without crashing the reporter', t =>
   t.regex(result.stdout, /not ok 1 - intentional reporter failure/, result.stderr);
   const diagnostics = result.stdout.match(/  ---\n([\s\S]*?)  \.\.\./);
   t.truthy(diagnostics);
-  const error = yaml.load(diagnostics[1]);
+  const error = load(diagnostics[1]);
   t.is(error.name, 'AssertionError');
   t.is(error.assertion, 't.is()');
   t.regex(Object.values(error.details).join('\n'), /- 1\n\+ 2/);
