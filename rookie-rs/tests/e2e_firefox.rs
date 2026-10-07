@@ -98,7 +98,18 @@ mod state {
   use std::collections::BTreeMap;
   use std::env;
 
+  /// Check transition rows exactly, excluding only the enabled Firefox workload cookie.
   pub fn assert(cookies: &[rookie_cookies::enums::Cookie], domain: &str, surface: &str) {
+    let allow_churn = env::var("ROOKIE_E2E_FIREFOX_WRITER_CHURN").as_deref() == Ok("1");
+    let cookies: Vec<_> = cookies
+      .iter()
+      .filter(|cookie| {
+        !(allow_churn
+          && cookie.name == "rookie_writer_churn"
+          && cookie.domain == "127.0.0.1"
+          && cookie.path == "/active-writer/churn")
+      })
+      .collect();
     let expected_name =
       env::var("ROOKIE_E2E_COOKIE_NAME").unwrap_or_else(|_| "rookie_ci".to_string());
     let expected_value = env::var("ROOKIE_E2E_COOKIE_VALUE").unwrap_or_else(|_| "bar".to_string());

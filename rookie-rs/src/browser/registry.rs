@@ -762,7 +762,11 @@ fn digest_fields<'a>(fields: impl IntoIterator<Item = &'a [u8]>) -> String {
   for field in fields {
     append_length_prefixed(&mut hasher, field);
   }
-  format!("{:x}", hasher.finalize())
+  hasher
+    .finalize()
+    .iter()
+    .map(|byte| format!("{byte:02x}"))
+    .collect()
 }
 
 // [Rev 2] Decision 18: these produce the already-public `report_core` id

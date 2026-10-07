@@ -194,6 +194,16 @@ class CookieServerTests(unittest.TestCase):
         self.assertIn("Expires=Fri, 01 Jan 2100 00:00:00 GMT", headers[0])
         self.assertIn("rookie_added=present", headers[1])
 
+    def test_firefox_churn_leaves_the_transition_subjects_untouched(self) -> None:
+        """Firefox churn writes only the dedicated cookie with its own path."""
+        headers = SERVER.Handler.cookie_headers(
+            "/active-writer/churn?expiry=4102444800&engine=firefox&sequence=42"
+        )
+        self.assertEqual(headers, [
+            "rookie_writer_churn=42; Path=/active-writer/churn; "
+            "Expires=Fri, 01 Jan 2100 00:00:00 GMT; SameSite=Lax"
+        ])
+
     def test_staged_wal_route_keeps_its_historical_canary_cookie(self) -> None:
         self.assertIn(
             "rookie_wal=live; Path=/; Max-Age=3600; SameSite=Lax",

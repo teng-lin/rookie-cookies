@@ -182,6 +182,9 @@ jobs:
       - name: Test raw DevTools lifecycle helper
         if: ${{ !cancelled() && matrix.os == 'ubuntu-latest' }}
         run: node --test tests/e2e/test_navigate_chromium_cdp.mjs
+      - name: Test browser writer and cookie deletion helpers
+        if: ${{ !cancelled() && matrix.os == 'ubuntu-latest' }}
+        run: node --test tests/e2e/test_active_writer_protocol.mjs tests/e2e/test_stress_cookie_jar.mjs
       - name: Install cargo-audit
         if: ${{ !cancelled() && matrix.os == 'ubuntu-latest' }}
         run: cargo install cargo-audit --version 0.22.2 --locked

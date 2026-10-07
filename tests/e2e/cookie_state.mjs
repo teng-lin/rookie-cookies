@@ -1,5 +1,20 @@
 import process from "node:process";
 
+/** Keep stable rows while excluding only the enabled Firefox workload identity. */
+export function stateCookies(cookies) {
+  if (process.env.ROOKIE_E2E_FIREFOX_WRITER_CHURN !== "1") return cookies;
+  // Firefox can commit the workload cookie's DELETE before its INSERT.
+  // Every other row still belongs to the exact state-transition assertion.
+  return cookies.filter(
+    (cookie) =>
+      !(
+        cookie.name === "rookie_writer_churn" &&
+        cookie.domain === "127.0.0.1" &&
+        cookie.path === "/active-writer/churn"
+      ),
+  );
+}
+
 export function stateFromEnvironment(defaultName, defaultValue) {
   const required = process.env.ROOKIE_E2E_REQUIRED_COOKIES_JSON
     ? JSON.parse(process.env.ROOKIE_E2E_REQUIRED_COOKIES_JSON)
@@ -35,7 +50,9 @@ export function stateFromEnvironment(defaultName, defaultValue) {
   return { required, forbidden };
 }
 
+/** Require exact stable values and absence of every explicitly deleted cookie. */
 export function assertCookieState(cookies, required, forbidden, surface) {
+  cookies = stateCookies(cookies);
   for (const [name, value] of Object.entries(required)) {
     const matches = cookies.filter((cookie) => cookie.name === name);
     if (matches.length !== 1) {
