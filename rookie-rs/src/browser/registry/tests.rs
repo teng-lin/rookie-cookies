@@ -8,6 +8,16 @@ use super::test_seams::{
 use super::*;
 
 #[test]
+fn identity_digest_preserves_length_prefixes_and_lowercase_hex() {
+  // Fixed bytes keep this independent of host paths and catch changes to
+  // public identifiers when the hashing dependency or hex conversion changes.
+  assert_eq!(
+    digest_fields([b"".as_slice(), b"rookie-cookies", &[0, 0xff]]),
+    "21a8c846ed6e2eda50dbdc59e8863894dcf94f0055a3e1a535bdb117413a62c7"
+  );
+}
+
+#[test]
 fn linux_system_context_discovers_config_roots_without_home() {
   let temp = TempDir::new("linux-context-without-home");
   let xdg_config_home = temp.path().join("xdg-config");

@@ -1,4 +1,5 @@
 use super::*;
+use crate::utils::tests::unique_tmpdir;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use lz4_flex::block::compress_prepend_size;
 use sha2::{Digest, Sha256};
@@ -26,17 +27,6 @@ impl Clock for TickClock {
   }
 
   fn sleep(&self, _duration: Duration) {}
-}
-
-// Per-process unique temp paths without pulling in the `tempfile` dep.
-// Each test gets its own subdirectory so they don't collide when run in
-// parallel under `cargo test`.
-fn unique_tmpdir(tag: &str) -> PathBuf {
-  static COUNTER: AtomicU64 = AtomicU64::new(0);
-  let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-  let dir = std::env::temp_dir().join(format!("rookie-test-{}-{}-{}", tag, std::process::id(), n));
-  std::fs::create_dir_all(&dir).expect("temp dir");
-  dir
 }
 
 #[test]
@@ -343,7 +333,10 @@ fn captured_firefox_141_session_uses_root_cookies_and_millisecond_expiry() {
   );
   assert_eq!(raw.len(), 1_111);
   assert_eq!(
-    format!("{:x}", Sha256::digest(&raw)),
+    Sha256::digest(&raw)
+      .iter()
+      .map(|byte| format!("{byte:02x}"))
+      .collect::<String>(),
     "359602096db47f6d54a0a1d454844abdb604df99c1b26973f22c9dda6ea8bc2d"
   );
 
@@ -379,7 +372,10 @@ fn captured_firefox_142_session_uses_root_cookies_without_expiry() {
   );
   assert_eq!(raw.len(), 1_091);
   assert_eq!(
-    format!("{:x}", Sha256::digest(&raw)),
+    Sha256::digest(&raw)
+      .iter()
+      .map(|byte| format!("{byte:02x}"))
+      .collect::<String>(),
     "07e4925c9bb594204cafb652cf8f451eda09ad4877173767b81d5d4163434062"
   );
 

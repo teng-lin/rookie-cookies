@@ -13,7 +13,6 @@ use super::safari::{discover_safari_with_context, safari_report_with_context};
 use super::*;
 use crate::browser::chromium_crypto::{ChromiumKeyOutcomes, KeyProvider};
 use crate::browser::mozilla;
-use std::sync::atomic::{AtomicU64, Ordering};
 
 struct MetadataDeniedFs {
   denied: PathBuf,
@@ -320,14 +319,7 @@ pub(crate) struct TempDir(pub(crate) PathBuf);
 
 impl TempDir {
   pub(crate) fn new(tag: &str) -> Self {
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
-    let count = COUNTER.fetch_add(1, Ordering::SeqCst);
-    let path = std::env::temp_dir().join(format!(
-      "rookie-registry-{tag}-{}-{count}",
-      std::process::id()
-    ));
-    std::fs::create_dir_all(&path).expect("create temporary directory");
-    Self(path)
+    Self(crate::utils::tests::unique_tmpdir(tag))
   }
 
   pub(crate) fn path(&self) -> &Path {

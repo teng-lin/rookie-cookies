@@ -62,8 +62,50 @@ fn create_private_dir(path: &Path) -> Result<()> {
 }
 
 #[cfg(test)]
-mod tests {
-  use super::TempDir;
+pub(crate) mod tests {
+  use super::{fs, PathBuf, TempDir};
+  use std::sync::atomic::{AtomicU64, Ordering};
+
+  /// Reserves a fresh fixture directory, including when a previous test
+  /// process left files behind and the OS reused its process ID.
+  pub(crate) fn unique_tmpdir(tag: &str) -> PathBuf {
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    reserve_tmpdir(tag, &COUNTER)
+  }
+
+  fn reserve_tmpdir(tag: &str, counter: &AtomicU64) -> PathBuf {
+    loop {
+      let n = counter.fetch_add(1, Ordering::Relaxed);
+      let dir = std::env::temp_dir().join(format!("rookie-test-{tag}-{}-{n}", std::process::id()));
+      match fs::create_dir(&dir) {
+        Ok(()) => return dir,
+        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+        Err(error) => panic!("create test fixture directory: {error}"),
+      }
+    }
+  }
+
+  #[test]
+  fn fixture_directory_skips_stale_files_after_counter_reset() {
+    let counter = AtomicU64::new(0);
+    let first = reserve_tmpdir("reused-process-id", &counter);
+    let marker = first.join("existing-fixture");
+    fs::write(&marker, b"previous process").expect("seed stale fixture");
+
+    // A new test executable starts its counter at zero; Windows can give it
+    // the PID of the preceding executable before those fixtures are removed.
+    counter.store(0, Ordering::Relaxed);
+    let second = reserve_tmpdir("reused-process-id", &counter);
+    assert_ne!(first, second);
+    assert!(!second.join("existing-fixture").exists());
+    assert_eq!(
+      fs::read(marker).expect("read stale fixture"),
+      b"previous process"
+    );
+
+    fs::remove_dir_all(first).expect("remove stale fixture");
+    fs::remove_dir_all(second).expect("remove fresh fixture");
+  }
 
   #[test]
   fn temp_dir_is_removed_on_drop() {

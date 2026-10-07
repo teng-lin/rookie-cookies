@@ -33,7 +33,13 @@
   "devDependencies": {
     "@napi-rs/cli": "^3.8.6",
     "ava": "^8.0.1",
+    "js-yaml": "^4.3.2",
     "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "supertap": {
+      "js-yaml": "$js-yaml"
+    }
   },
   "ava": {
     "timeout": "3m"
@@ -51,8 +57,8 @@
     "build:test": "napi build --platform --release --features test-support",
     "postbuild:test": "node scripts/patch-loader.js",
     "prepack": "node scripts/patch-loader.js",
-    "test": "ava",
-    "test:worker-panic": "ava __test__/worker-panic.test-support.mjs",
+    "test": "node scripts/test.mjs",
+    "test:worker-panic": "node scripts/test.mjs __test__/worker-panic.test-support.mjs",
     "typecheck": "tsc --noEmit --strict index.d.ts",
     "universal": "napi universalize",
     "version": "napi version"

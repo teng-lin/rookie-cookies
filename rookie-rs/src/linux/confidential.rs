@@ -29,7 +29,7 @@ where
   T: Transport,
 {
   let mut private_key = Zeroizing::new([0_u8; zeroizing_dh::KEY_BYTES]);
-  getrandom::getrandom(private_key.as_mut()).map_err(|error| {
+  getrandom::fill(private_key.as_mut()).map_err(|error| {
     anyhow::anyhow!("platform RNG failed during Secret Service session negotiation: {error}")
   })?;
   // Keep the exponent in the full-size range (and therefore non-zero) without
