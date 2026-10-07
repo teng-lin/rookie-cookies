@@ -11,18 +11,9 @@ use crate::browser::chromium_test_support::encrypt_windows_gcm_cookie;
 #[cfg(unix)]
 use crate::browser::chromium_test_support::host_bound_plaintext;
 use crate::browser::cookie_record::{Observation, RawValue};
+use crate::utils::tests::unique_tmpdir;
 use std::cell::Cell;
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, Ordering};
-
-// Per-process unique temp paths without pulling in the `tempfile` dep.
-fn unique_tmpdir(tag: &str) -> PathBuf {
-  static COUNTER: AtomicU64 = AtomicU64::new(0);
-  let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-  let dir = std::env::temp_dir().join(format!("rookie-test-{}-{}-{}", tag, std::process::id(), n));
-  std::fs::create_dir_all(&dir).expect("temp dir");
-  dir
-}
 
 fn extract_cookies_with_legacy_keys(
   keys: Vec<Vec<u8>>,
