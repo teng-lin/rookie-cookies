@@ -33,7 +33,7 @@
   "devDependencies": {
     "@napi-rs/cli": "^3.10.5",
     "ava": "^8.0.1",
-    "js-yaml": "^5.4.2",
+    "js-yaml": "^5.4.3",
     "typescript": "^7.0.2"
   },
   "overrides": {
