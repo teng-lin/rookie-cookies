@@ -110,7 +110,7 @@ jobs:
           cp "$manifest" "$output/expected-manifest.json"
           rm -f "$decoded"
           find "$output" -maxdepth 1 -type f -print
-      - uses: actions/upload-artifact@65db11d1e295c20f3a35e3cc7e3f24288f5f9a2d # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: sanitized-${{ inputs.engine }}-cookie-fixture-${{ inputs.playwright_version }}-${{ github.run_id }}
           path: ${{ runner.temp }}/rookie-fixture-candidate-${{ inputs.engine }}
