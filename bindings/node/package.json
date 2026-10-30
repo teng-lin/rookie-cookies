@@ -32,7 +32,7 @@
   "license": "MIT",
   "devDependencies": {
     "@napi-rs/cli": "^3.10.5",
-    "ava": "^8.0.1",
+    "ava": "^8.1.0",
     "js-yaml": "^5.4.2",
     "typescript": "^7.0.2"
   },
