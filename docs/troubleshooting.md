@@ -27,6 +27,81 @@ databases. Prefer non-disruptive extraction; do not assume a process restart is
 available or desirable. Session cookies may still disappear when the browser
 process exits.
 
+## Windows Defender / antivirus flags the native module
+
+App-Bound `v20` recovery's unprivileged path spawns a browser process and
+reflectively injects into it to call `IElevator.DecryptData` — the same
+general shape real infostealer malware uses against Chrome's App-Bound key,
+so some antivirus engines flag the native module (`rookie_cookies.pyd` /
+`rookie-cookies.node` / the CLI binary) on heuristics alone. On Windows,
+check first:
+
+```powershell
+Get-MpThreatDetection | Where-Object { $_.Resources -match "rookie" }
+```
+
+If Defender quarantined the file (`ActionSuccess: True`, a `ThreatName` like
+`Trojan:Win64/InfoStealer!AMTB`), the module may be silently missing or
+re-deleted on every reinstall, which looks like `v20` extraction failing or
+hanging rather than an AV issue. This can happen even when an elevated CI
+runner never reproduces it, since Defender's SYSTEM-context policy can differ
+from a normal desktop session's.
+
+Best fix: submit the flagged file to Microsoft's
+[false positive portal](https://www.microsoft.com/en-us/wdsi/filesubmission)
+so the signature gets corrected upstream for everyone. That review takes
+time, so to unblock yourself immediately, add a narrow Defender exclusion —
+scoped to the package directory only, never the whole venv or a whole
+drive — then reinstall, since the already-quarantined file needs to be
+restored, not just unblocked going forward.
+
+**1. Add the exclusion.** This needs an elevated (Run as Administrator)
+PowerShell, since reading or writing exclusions requires admin rights:
+
+```powershell
+# Python
+Add-MpPreference -ExclusionPath "<path to your venv>\Lib\site-packages\rookie_cookies"
+
+# Node.js
+Add-MpPreference -ExclusionPath "<path to your project>\node_modules\rookie-cookies"
+
+# CLI (exclude the installed binary's directory, not just the exe)
+Add-MpPreference -ExclusionPath "<install dir containing rookie-cookies.exe>"
+```
+
+Verify it took (also requires admin):
+
+```powershell
+Get-MpPreference | Select-Object -ExpandProperty ExclusionPath
+```
+
+**2. Reinstall**, so the restored file is written after the exclusion exists
+rather than being quarantined again on the way in:
+
+```powershell
+# pip
+pip install --force-reinstall --no-deps rookie-cookies
+
+# uv
+uv pip install --force-reinstall --no-deps rookie-cookies
+
+# npm
+npm install rookie-cookies --force
+
+# CLI: re-download or re-extract the binary into the excluded directory
+```
+
+**3. Confirm it actually loads** (Python example — adjust for your binding):
+
+```powershell
+python -c "import rookie_cookies; print('OK:', rookie_cookies.__file__)"
+```
+
+If that import succeeds and `v20` extraction still fails, the cause is
+something else — recheck `Get-MpThreatDetection` for a *new* detection first,
+since some Defender updates re-flag a previously-excluded path's contents
+after a reinstall changes the file's hash.
+
 ## macOS Safari permission denied
 
 Recent macOS versions restrict
