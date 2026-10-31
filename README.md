@@ -296,6 +296,12 @@ This project does not implement Device Bound Session Credentials (DBSC) and
 does not export browser private keys. A decrypted cookie is not always enough
 to replay a protected Chrome session.
 
+Some antivirus engines flag the native module on heuristics because the
+unprivileged `v20` recovery path reflectively injects into a spawned browser
+process — the same shape real infostealers use. If App-Bound extraction
+fails with no clear cause, check for a quarantined file first:
+[docs/troubleshooting.md](docs/troubleshooting.md#windows-defender--antivirus-flags-the-native-module).
+
 Platform quirks (Keychain prompts, Safari Full Disk Access):
 [docs/troubleshooting.md](docs/troubleshooting.md).
 
