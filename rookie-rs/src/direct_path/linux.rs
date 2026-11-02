@@ -96,6 +96,9 @@ fn chromium_detailed(
     ChromiumCredentialSource::LocalStateFile(_) => Err(invalid_options(
       InvalidDirectPathOptionsReason::LocalStateNotSupportedOnTarget,
     )),
+    ChromiumCredentialSource::MacosKeychain { .. } => Err(invalid_options(
+      InvalidDirectPathOptionsReason::KeychainNotSupportedOnTarget,
+    )),
   }
 }
 

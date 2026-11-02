@@ -8,6 +8,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `PathExtractRequest::macos_keychain(path, service, account)` and
+  `ChromiumCredentialSource::MacosKeychain` let a caller decrypt a Chromium
+  database with a Keychain identity the registry does not describe -- a vendor
+  fork, an in-house build, an Electron shell. On macOS the only other
+  encrypted-row source is a registry browser ID (`BrowserId`), so a product that
+  is not in `browser_registry.json` could not be decrypted from an explicit
+  macOS path at all. macOS-only, and rejected on other targets with the new
+  `keychain_not_supported_on_target` (or `empty_keychain_identity` for an empty
+  service or account) rather than falling back to a guess.
+
 - Python `extract(browser=..., profile=..., domains=...)` exposes the Rust
   flat extraction job as a first-class alternative to domain-filtered named
   helpers. Domains are filtered during extraction, before cookies reach
