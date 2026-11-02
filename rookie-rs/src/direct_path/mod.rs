@@ -455,7 +455,7 @@ pub enum ChromiumCredentialSource {
   /// Unix.
   LocalStateFile(PathBuf),
   /// Uses one explicit macOS Keychain generic-password identity. Invalid off
-  /// macOS; build it with [`PathExtractRequest::macos_keychain`].
+  /// macOS; build it with `PathExtractRequest::macos_keychain`.
   MacosKeychain { service: String, account: String },
 }
 

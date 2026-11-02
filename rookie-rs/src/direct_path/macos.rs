@@ -197,3 +197,20 @@ fn missing_identity(browser_id: &str) -> ChromiumKeyOutcomes {
     "browser {browser_id:?} has no macOS Keychain identity"
   ))
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn macos_keychain_constructor_maps_service_and_account_by_name() {
+    let request = macos_keychain("Cookies", "Probe Safe Storage", "Probe");
+    assert_eq!(
+      request.target.credentials,
+      Some(ChromiumCredentialSource::MacosKeychain {
+        service: "Probe Safe Storage".to_owned(),
+        account: "Probe".to_owned(),
+      })
+    );
+  }
+}

@@ -431,6 +431,46 @@ fn extracts_seeded_cookie_through_real_macos_keychain_provider() {
   }
 }
 
+#[cfg(target_os = "macos")]
+#[test]
+#[ignore]
+fn extracts_seeded_cookie_through_explicit_macos_keychain_identity() {
+  let db_path = helpers::resolve_db_path();
+  let domain = helpers::domain();
+  let browser_id = std::env::var("ROOKIE_E2E_BROWSER_ID").unwrap_or_else(|_| "chrome".to_owned());
+  let config = rookie_cookies::config::get_browser_config(&browser_id);
+  // The registry supplies the identity the CI-seeded browser uses; the
+  // overrides let the same test run against a Chromium fork the registry does
+  // not describe, which is what the direct-path source exists for.
+  let service = std::env::var("ROOKIE_E2E_KEYCHAIN_SERVICE")
+    .ok()
+    .or_else(|| config.osx_key_service.clone())
+    .unwrap_or_else(|| panic!("{browser_id} has no macOS Keychain service in the registry"));
+  let account = std::env::var("ROOKIE_E2E_KEYCHAIN_ACCOUNT")
+    .ok()
+    .or_else(|| config.osx_key_user.clone())
+    .unwrap_or_else(|| panic!("{browser_id} has no macOS Keychain account in the registry"));
+
+  // The direct-path source names the Keychain item directly instead of going
+  // through a registry browser ID, so it has to reach the same seeded cookie.
+  let cookies = rookie_cookies::direct_path::extract_from_path(
+    rookie_cookies::direct_path::PathExtractRequest::macos_keychain(
+      db_path.clone(),
+      service,
+      account,
+    )
+    .domains(Some(vec![domain.clone()])),
+  )
+  .unwrap_or_else(|e| {
+    panic!(
+      "PathExtractRequest::macos_keychain({}) failed: {e}",
+      db_path.display()
+    )
+  });
+
+  helpers::assert_seeded(&cookies, &domain);
+}
+
 #[cfg(target_os = "windows")]
 #[test]
 #[ignore]
