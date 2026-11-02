@@ -353,6 +353,9 @@ fn prepare_credentials(
     ChromiumCredentialSource::LocalStateFile(local_state) => Ok(PreparedCredentials::KeyOutcomes(
       local_state_outcomes(&local_state, runtime)?,
     )),
+    ChromiumCredentialSource::MacosKeychain { .. } => Err(invalid_options(
+      InvalidDirectPathOptionsReason::KeychainNotSupportedOnTarget,
+    )),
   }
 }
 

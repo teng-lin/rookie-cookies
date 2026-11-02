@@ -4,7 +4,9 @@ use super::{
   InvalidDirectPathOptionsReason, PathExtractRequest,
 };
 use crate::browser::chromium_crypto::ChromiumKeyOutcomes;
-use crate::browser::chromium_platform_keys::{ChromiumKeyRequest, HostKeySession};
+use crate::browser::chromium_platform_keys::{
+  ChromiumKeyIdentity, ChromiumKeyRequest, HostKeySession, MacosKeychainCredentials,
+};
 use crate::browser::registry::DirectPathChromiumIdentity;
 use crate::enums::{Cookie, DetailedCookie};
 use anyhow::Result;
@@ -29,6 +31,20 @@ pub(super) fn unix_identity(
   PathExtractRequest::with_credentials(
     path,
     Some(ChromiumCredentialSource::BrowserId(browser_id.into())),
+  )
+}
+
+pub(super) fn macos_keychain(
+  path: impl Into<PathBuf>,
+  service: impl Into<String>,
+  account: impl Into<String>,
+) -> PathExtractRequest {
+  PathExtractRequest::with_credentials(
+    path,
+    Some(ChromiumCredentialSource::MacosKeychain {
+      service: service.into(),
+      account: account.into(),
+    }),
   )
 }
 
@@ -98,7 +114,30 @@ fn chromium_detailed(
     ChromiumCredentialSource::LocalStateFile(_) => Err(invalid_options(
       InvalidDirectPathOptionsReason::LocalStateNotSupportedOnTarget,
     )),
+    ChromiumCredentialSource::MacosKeychain { service, account } => {
+      let outcomes = keychain_outcomes(service, account, runtime)?;
+      crate::browser::chromium_projection::extract_detailed_cookies_with_key_outcomes_runtime(
+        outcomes, path, domains, false, runtime,
+      )
+    }
   }
+}
+
+fn keychain_outcomes(
+  service: String,
+  account: String,
+  runtime: &crate::common::deadline::BoundaryRuntime<'_>,
+) -> Result<ChromiumKeyOutcomes> {
+  if service.is_empty() || account.is_empty() {
+    return Err(invalid_options(
+      InvalidDirectPathOptionsReason::EmptyKeychainIdentity,
+    ));
+  }
+  let identity = ChromiumKeyIdentity {
+    linux_crypt_name: None,
+    macos_keychain: Some(MacosKeychainCredentials { service, account }),
+  };
+  Ok(HostKeySession::new().retrieve(ChromiumKeyRequest::direct(&identity), runtime))
 }
 
 pub(crate) fn automatic_chromium(

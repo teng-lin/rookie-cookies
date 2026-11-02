@@ -102,10 +102,14 @@ impl InvalidCookieSourceReason {
 pub enum InvalidDirectPathOptionsReason {
   /// A `BrowserId` credential source carried an empty identifier.
   EmptyBrowserId,
+  /// A `MacosKeychain` credential source carried an empty service or account.
+  EmptyKeychainIdentity,
   /// Windows Chromium extraction requires an explicit Local State file.
   MissingLocalStateFile,
   /// Registry browser identities are unavailable on this target.
   BrowserIdNotSupportedOnTarget,
+  /// An explicit macOS Keychain identity is meaningful only on macOS.
+  KeychainNotSupportedOnTarget,
   /// Local State credentials are meaningful only on Windows.
   LocalStateNotSupportedOnTarget,
   /// Process shutdown is available only to explicit Windows Chromium requests.
@@ -123,8 +127,10 @@ impl InvalidDirectPathOptionsReason {
   fn code(self) -> &'static str {
     match self {
       Self::EmptyBrowserId => "empty_browser_id",
+      Self::EmptyKeychainIdentity => "empty_keychain_identity",
       Self::MissingLocalStateFile => "missing_local_state_file",
       Self::BrowserIdNotSupportedOnTarget => "browser_id_not_supported_on_target",
+      Self::KeychainNotSupportedOnTarget => "keychain_not_supported_on_target",
       Self::LocalStateNotSupportedOnTarget => "local_state_not_supported_on_target",
       Self::ProcessShutdownNotSupportedOnTarget => "process_shutdown_not_supported_on_target",
       Self::UnknownBrowserId => "unknown_browser_id",
@@ -328,6 +334,25 @@ impl PathExtractRequest {
     platform::unix_identity(path, browser_id)
   }
 
+  /// Reads an encrypted Chromium database using a caller-supplied macOS
+  /// Keychain identity.
+  ///
+  /// For a Chromium-based browser the registry does not describe -- a vendor
+  /// fork, an in-house build, an Electron shell. macOS keeps each product's v10
+  /// password under its own Keychain generic-password item, so naming that item
+  /// is the only way to decrypt a database no registry entry describes.
+  ///
+  /// macOS-only, for the same reason [`Self::unix_identity`] is Unix-only: the
+  /// value means nothing elsewhere.
+  #[cfg(target_os = "macos")]
+  pub fn macos_keychain(
+    path: impl Into<PathBuf>,
+    service: impl Into<String>,
+    account: impl Into<String>,
+  ) -> Self {
+    platform::macos_keychain(path, service, account)
+  }
+
   /// Reads an encrypted Chromium database using a caller-supplied
   /// `Local State` file. Windows-only, for the same reason in reverse.
   #[cfg(windows)]
@@ -429,6 +454,9 @@ pub enum ChromiumCredentialSource {
   /// Uses a caller-supplied Windows Chromium Local State file. Invalid on
   /// Unix.
   LocalStateFile(PathBuf),
+  /// Uses one explicit macOS Keychain generic-password identity. Invalid off
+  /// macOS; build it with [`PathExtractRequest::macos_keychain`].
+  MacosKeychain { service: String, account: String },
 }
 
 impl ChromiumCredentialSource {
@@ -1331,6 +1359,38 @@ mod tests {
       assert_eq!(
         source_error(&error).invalid_options_reason(),
         Some(&expected)
+      );
+    }
+  }
+
+  // One test for both worlds rather than two gated ones: the reason is what
+  // differs by target, and the request shape that reaches it is the same.
+  #[test]
+  fn macos_keychain_source_is_typed_on_every_target() {
+    let (_directory, path) = chromium_database(&[]);
+    let request = |service: &str, account: &str| {
+      PathExtractRequest::with_credentials(
+        &path,
+        Some(ChromiumCredentialSource::MacosKeychain {
+          service: service.to_owned(),
+          account: account.to_owned(),
+        }),
+      )
+    };
+
+    if cfg!(target_os = "macos") {
+      for (service, account) in [("", "Chrome"), ("Chrome Safe Storage", "")] {
+        let error = extract_from_path(request(service, account)).unwrap_err();
+        assert_eq!(
+          source_error(&error).invalid_options_reason(),
+          Some(&InvalidDirectPathOptionsReason::EmptyKeychainIdentity)
+        );
+      }
+    } else {
+      let error = extract_from_path(request("Chrome Safe Storage", "Chrome")).unwrap_err();
+      assert_eq!(
+        source_error(&error).invalid_options_reason(),
+        Some(&InvalidDirectPathOptionsReason::KeychainNotSupportedOnTarget)
       );
     }
   }
